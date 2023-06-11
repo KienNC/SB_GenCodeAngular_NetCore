@@ -42,7 +42,7 @@
              
             var entityTs = this.Create<ComponentTs>();
             var entity = tableSchema;
-            var fileName = String.Format("{0}\\{1}.component.ts", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+            var fileName = String.Format("{0}\\{1}-list.component.ts", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
             if (!File.Exists(fileName))
     		{
                 this.CopyPropertiesTo(entityTs);
@@ -53,7 +53,7 @@
     		}
         
             var entityHtml = this.Create<ComponentHtml>();
-            var fileHtml = String.Format("{0}\\{1}.component.html", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+            var fileHtml = String.Format("{0}\\{1}-list.component.html", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
             if (!File.Exists(fileHtml))
     		{
                 this.CopyPropertiesTo(entityHtml);
@@ -62,42 +62,42 @@
                 Response.WriteLine(fileHtml);
                 entityHtml.RenderToFile(fileHtml, true);
     		}
-            
-            var module = this.Create<Module>();
-            var fileModule = String.Format("{0}\\{1}.module.ts", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
-            if (!File.Exists(fileModule))
-    		{
-                this.CopyPropertiesTo(module);
-                module.EntityNamespace = "";
-                module.SourceTable = entity;
-                Response.WriteLine(fileModule);
-                module.RenderToFile(fileModule, true);
-    		}
-            
-            var routing = this.Create<Routing>();
-            var fileRouting = String.Format("{0}\\{1}.routing.ts", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
-            if (!File.Exists(fileRouting))
-    		{
-                this.CopyPropertiesTo(routing);
-                routing.EntityNamespace = "";
-                routing.SourceTable = entity;
-                Response.WriteLine(fileRouting);
-                routing.RenderToFile(fileRouting, true);
-    		}
-   
-            var fileScss = String.Format("{0}\\{1}.component.scss", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+               var fileScss = String.Format("{0}\\{1}-list.component.scss", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
             if (!File.Exists(fileScss))
     		{
                 File.Create(fileScss);
     		}
-            var fileService = String.Format("{0}\\{1}\\{2}.service.ts", outPut, "services", CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
-            if (!File.Exists(fileService)) {
-                var service = this.Create<Service>();
-                service.EntityNamespace = "";
-                service.SourceTable = entity;
-                service.Endpoint = Endpoint;
-                service.RenderToFile(fileService, true);
-           }
+//            var module = this.Create<Module>();
+//            var fileModule = String.Format("{0}\\{1}.module.ts", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+//            if (!File.Exists(fileModule))
+//    		{
+//                this.CopyPropertiesTo(module);
+//                module.EntityNamespace = "";
+//                module.SourceTable = entity;
+//                Response.WriteLine(fileModule);
+//                module.RenderToFile(fileModule, true);
+//    		}
+//            
+//            var routing = this.Create<Routing>();
+//            var fileRouting = String.Format("{0}\\{1}.routing.ts", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+//            if (!File.Exists(fileRouting))
+//    		{
+//                this.CopyPropertiesTo(routing);
+//                routing.EntityNamespace = "";
+//                routing.SourceTable = entity;
+//                Response.WriteLine(fileRouting);
+//                routing.RenderToFile(fileRouting, true);
+//    		}
+//   
+//         
+//            var fileService = String.Format("{0}\\{1}\\{2}.service.ts", outPut, "services", CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+//            if (!File.Exists(fileService)) {
+//                var service = this.Create<Service>();
+//                service.EntityNamespace = "";
+//                service.SourceTable = entity;
+//                service.Endpoint = Endpoint;
+//                service.RenderToFile(fileService, true);
+//           }
         }
     }
 </script>

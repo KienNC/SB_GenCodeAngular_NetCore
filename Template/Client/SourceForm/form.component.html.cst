@@ -52,40 +52,60 @@
     
      private string GetControl(string name, string dataType,bool required) {
         dataType = dataType.ToLower();
-        string result = dataType;
+        string result = "";
         switch (dataType)
         {
             case "int32":
                 if(required){
-                    result = "<nz-form-item> \n\t\t <nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t\t<input nz-input  formControlName='"+ name +"' type='number'>\n\t\t\t</nz-form-control>\n\t</nz-form-item>";
+                    result = "<nz-form-item>\n\t\t<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t<input nz-input  formControlName='"+ name +"' type='number'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
                 } else  {
-                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t\t<input nz-input formControlName='"+ name +"' type='number'>\n\t\t\t</nz-form-control>\n\t\t</nz-form-item>";
+                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<input nz-input formControlName='"+ name +"' type='number'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
                 }
                 break;
             case "int64":
                 if(required){
-                    result = "<nz-form-item> \n\t <nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t<input nz-input  formControlName='"+ name +"' type='number'>\n\t</nz-form-control>\n\t </nz-form-item>";
+                    result = "<nz-form-item>\n\t<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t<input nz-input  formControlName='"+ name +"' type='number'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
                 } else  {
-                    result = "<nz-form-item> \n\t <nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='name'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<input nz-input formControlName='"+ name +"' type='number'>\n\t</nz-form-control>\n\t </nz-form-item>";
+                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='name'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<input nz-input formControlName='"+ name +"' type='number'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
                 }
                 break;
             case "datetime":
-                result = "DateTimeControlSchema";
+                if(required){
+                    result = "<nz-form-item>\n\t\t<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t<app-date-picker formControlName='"+ name +"'></app-date-picker>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                } else  {
+                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='name'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<app-date-picker formControlName='"+ name +"'></app-date-picker>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                }
                 break;  
             case "string":
+            case "ansistring":
                 if(required){
-                    result = "<nz-form-item> \n\t <nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t<input nz-input placeholder='không nhập ký tự đặc biệt !@#$%...' formControlName='"+ name +"' type='text'>\n\t</nz-form-control>\n\t </nz-form-item>";
+                    result = "<nz-form-item>\n\t\t<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t<input nz-input placeholder='không nhập ký tự đặc biệt !@#$%...' formControlName='"+ name +"' type='text'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
                 } else  {
-                    result = "<nz-form-item> \n\t <nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<input nz-input formControlName='"+ name +"' type='text' placeholder='không nhập ký tự đặc biệt !@#$%...'>\n\t\t</nz-form-control>\n\t </nz-form-item>";
+                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<input nz-input formControlName='"+ name +"' type='text' placeholder='không nhập ký tự đặc biệt !@#$%...'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
                 }
                 break;
             case "boolean":
-                result = "SwitchControlSchema";
+               if(required){
+                    result = "<nz-form-item>\n\t\t<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='3' [nzXs]='3' nzErrorTip='"+name+" không được bỏ trống!' nzFor='"+name+"' >\n\t\t\t<label style='vertical-align: middle;'  formControlName='"+name+"' nz-checkbox></label>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                } else  {
+                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='3' [nzXs]='3' nzFor='"+name+"' >\n\t\t\t<label style='vertical-align: middle;'  formControlName='"+name+"' nz-checkbox></label>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                }
                 break;
-            case ".timespan":
-                 result = "<nz-form-item> \n\t <nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='name'>Tên khóa học</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='Tên không được bỏ trống!'>\n\t\t\t<input nz-input placeholder='Tối đa 200 ký tự, không nhập ký tự đặc biệt !@#$%...' formControlName='name' type='text'>\n\t</nz-form-control>\n\t </nz-form-item>";
+            case "timespan":
+            case "time":
+                 if(required){
+                    result = "<nz-form-item>\n\t\t<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!' nzFormat='HH:mm'>\n\t\t\t<nz-time-picker formControlName='"+ name +"'></nz-time-picker>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                } else  {
+                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='name'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<nz-time-picker formControlName='"+ name +"' nzFormat='HH:mm'></nz-time-picker>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                }
                 break;
-            break; 
+            default: // default string
+                if(required){
+                    result = "<nz-form-item>\n\t\t<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='"+name+" không được bỏ trống!'>\n\t\t\t<input nz-input placeholder='không nhập ký tự đặc biệt !@#$%...' formControlName='"+ name +"' type='text'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                } else  {
+                    result = "<nz-form-item>\n\t\t<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='"+name+"'>"+name+"</nz-form-label>\n\t\t<nz-form-control [nzSm]='14' [nzXs]='24'>\n\t\t\t<input nz-input formControlName='"+ name +"' type='text' placeholder='không nhập ký tự đặc biệt !@#$%...'>\n\t\t</nz-form-control>\n\t</nz-form-item>";
+                }
+                break; 
         }
         return result;
     }

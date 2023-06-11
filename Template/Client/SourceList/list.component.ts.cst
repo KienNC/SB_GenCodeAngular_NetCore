@@ -19,31 +19,111 @@
 <%@ Register Name="CommonService" Template="..\CommonService.cst" %>
 <%@ Property Name="IsVietNameseTableSetting"  Type="System.Boolean" Default="false" Description="Sử dụng tên bảng kiểu VietNam (Ngăn cách nhau bởi dấu _ ) "%>
 
-import { Component, OnInit, Injector } from '@angular/core';
-import { ComponentContextService, CrudListBase, MasterDataService, EntityMetadataService, GridColumn } from 'tn-shared';
-import { <%=SourceTable.Name%>Service } from './services/<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>.service';
-
 @Component({
-    selector: '<%=SourceTable.Name%>',
-    templateUrl: './<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>.component.html',
-    styleUrls: ['./<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>.component.scss'],
-    providers: [ComponentContextService, EntityMetadataService]
+  selector: 'app-<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>-list',
+  templateUrl: './<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>-list.component.html',
+  styleUrls: ['./<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>-list.component.scss']
 })
-export class <%=SourceTable.Name%>Component extends CrudListBase implements OnInit {
-    constructor(
-		protected _injection: Injector,
-        protected _<%=SourceTable.Name%>Service: <%=SourceTable.Name%>Service
-    ) {
-        super(_<%=SourceTable.Name%>Service, _injection);
-    }
-    ngOnInit() {
-        this.dataModel.cols = [
-            <%=renderFieldInGrid()%>
-        ];
-        super.ngOnInit();
-    }
-}
+export class <%=SourceTable.Name%>ListComponent extends BaseListComponent {
+  constructor(
+    private _modalService: NzModalService,
+    private _notification: NzNotificationService,
+    private spinner: NgxSpinnerService,
+    private _<%=LowerFirstChar(SourceTable.Name)%>Service: <%=SourceTable.Name%>Service
+  ) {
+    super()
+  }
+  
+  ngOnInit() {
+    this.gridColums = [
+    <%=renderFieldInGrid()%>
+    ];
 
+    // this.totalRecord = 100;
+   // this.gridLoadData();
+  }
+
+  gridLoadData() {
+    this.setSearchPage();
+    this._<%=LowerFirstChar(SourceTable.Name)%>Service.search(this.searchModel).subscribe(res=>{
+      if(res.isSuccess){
+        this.gridData = res.data;
+        this.totalRecord = res.totalRecord
+      }
+    })
+  }
+  
+  changePageSize(event) {
+    this.pageSize = event;
+    this.gridLoadData()
+  }
+  
+  changePageIndex(event) {
+    this.page = event;
+    this.gridLoadData()
+  }
+
+  onAddNew() {
+    let modal = this._modalService.create({
+      nzTitle: 'Thêm mới người dùng',
+      nzContent: AppDictionaryEditComponent,
+      nzClosable: true,
+      nzFooter: null,
+      nzStyle: { top: '50px' },
+      nzWidth: 1000,
+    });
+    modal.afterClose.subscribe(res => {
+      if (res) {
+        this.gridLoadData();
+      }
+    });
+  }
+
+  onEdit(id) {
+    let modal = this._modalService.create({
+      nzTitle: 'Cập nhật người dùng',
+      nzContent: McourseEditComponent,
+      nzClosable: true,
+      nzFooter: null,
+      nzStyle: { top: '50px' },
+      nzWidth: 1000,
+      nzComponentParams: { id },
+    });
+    modal.afterClose.subscribe(res => {
+      if (res) {
+        this.gridLoadData();
+      }
+    });
+  }
+
+  onDelete(id) {
+    this._modalService.confirm({
+      nzClosable: false,
+      nzTitle: 'Xác nhận',
+      nzContent: 'Bạn có chắc chắn muốn xóa?',
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Không',
+      nzOkDanger: true,
+      nzWidth: 310,
+      nzOnOk: () => {
+        this.spinner.show();
+        this._<%=LowerFirstChar(SourceTable.Name)%>Service.delete(id).subscribe(res=>{
+          this.spinner.hide()
+          if(res.isSuccess){
+            this._notification.success(MESSAGE.SUCCESS,MESSAGE.DELETE_SUCCESS)
+            this.gridLoadData();
+          }         
+        })    
+      }
+    });
+  }
+
+
+  search(): void {
+    this.gridLoadData()
+  }
+
+}
 <script runat="template">
     private string GetDataFormat(string dataType) {
         dataType = dataType.ToLower();
@@ -78,9 +158,6 @@ export class <%=SourceTable.Name%>Component extends CrudListBase implements OnIn
         string fields = "";
         string lastString = ",\n\t\t\t";
         var columnIgnores = Config.FieldIgnores.ToList();
-//        if (Config.Configs.ContainsKey(SourceTable.Name)) {
-//            columnIgnores.AddRange(Config.Configs[SourceTable.Name].FieldIgnores.ToList());
-//        }
         for (int i = 0; i < SourceTable.Columns.Count; i++)
         {
             string field = SourceTable.Columns[i].Name;
@@ -89,13 +166,39 @@ export class <%=SourceTable.Name%>Component extends CrudListBase implements OnIn
                 continue;
             string name = LowerFirstChar(field);
             string dataFormat = GetDataFormat(SourceTable.Columns[i].SystemType.ToString());
-            fields += "new GridColumn({ field: '" + name + "'" + dataFormat + ", header: this._translateService.instant('" + CommonService.GetDescription(SourceTable.Columns[i].Description) + "') })" + lastString;
+            fields += " new GridColumn({field: '"+name+"', header: '"+name+"', thWidth: '120px', class: '"+getClassColumn(SourceTable.Columns[i].DataType.ToString())+"'"+GetDataFormat(SourceTable.Columns[i].SystemType.ToString()) +"'})" + lastString;
         }
         if (fields.Length > 1)
         {
             return fields.Substring(0, fields.Length - lastString.Length);
         }
         return fields;
+    }
+    private string getClassColumn(string dataType){
+        dataType = dataType.ToLower();
+        string result = "";
+        switch (dataType)
+        {
+            case "datetime":
+            case "time":
+            case "timespan": 
+            case "date":
+                result = "text-center";
+                break;       
+            case "int32":
+            case "int64":
+            case "decimal":
+            case "double":
+            case "long":
+                result = "text-right";
+                break;
+			case "boolean":
+               result = "text-center";
+                break;
+            default:
+                result = "text-left";
+        }
+        return result;
     }
 </script>
     

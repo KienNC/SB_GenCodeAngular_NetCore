@@ -1,0 +1,39 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+<%@ Assembly Name="Newtonsoft.Json.dll" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="Newtonsoft.Json" %>
+
+<%@ Property Name="SourceTable" Type="TableSchema"  %>
+
+
+<%@ Property Name="IsVietNameseTableSetting" Type="System.Boolean" Default="false" Description="Sử dụng tên bảng kiểu VietNam (Ngăn cách nhau bởi dấu _ ) "%>
+<%@ Register Name="CommonService" Template="..\CommonService.cst" %>
+
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { ResponseData } from "src/app/models/response";
+import { environment } from "src/environments/environment";
+import { BaseService } from "../../base/base.service";
+@Injectable({
+  providedIn: 'root'
+})
+export class <%=SourceTable.Name%>Service extends BaseService {
+
+  constructor(public httpClient: HttpClient,) {
+    super(httpClient, `${environment.API_URL}<%=SourceTable.Name%>`);
+  }
+}
+
+<script runat="template">
+  
+
+</script>

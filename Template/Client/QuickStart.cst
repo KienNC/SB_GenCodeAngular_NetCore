@@ -30,7 +30,7 @@
 <%@ Register Name="RoutingTemplate" Template="routing.cst" %>
 <%@ Register Name="ParentModuleTemplate" Template="parentmodule.cst" %>
 <%@ Register Name="MenuLinkTemplate" Template="menuLink.cst" %>
-
+<%@ Register Name="StartServiceTemplate" Template="SourceService\StartService.cst" %>
 <%@ Register Name="CommonService" Template="CommonService.cst" %>
 
 <%CreateApp();%>
@@ -58,6 +58,7 @@
             }
         }
         RenderForm(outPut, config);
+        RenderService(outPut);
       //  RenderList(outPut, config);
      //   RenderRouting(outPut);
       //RenderModule(outPut);
@@ -123,7 +124,15 @@
             module.RenderToFile(fileName, true);
         }
     }
-
+    private void RenderService(string outPut)
+    {
+        var entityTemplate = this.Create<StartServiceTemplate>();    
+        this.CopyPropertiesTo(entityTemplate);     
+        entityTemplate.SourceDatabase = SourceDatabase;
+        entityTemplate.SourceTables = SourceTables;
+        entityTemplate.Location = outPut;
+        entityTemplate.CreateFolderForm();
+    }
     public class ConfigGenerate {
         public string[] FieldIgnores { get; set; }
        //public TableConfig Configs { get; set; }

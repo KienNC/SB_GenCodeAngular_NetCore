@@ -1,6 +1,26 @@
 {
 	"FieldIgnores": [
-		"Id", "IsDelete", "CreatedDate", "CreatedById", "CreatedByName", "UpdatedDate", "UpdatedById", "UpdatedByName", "DeletedDate", "DeletedById", "DeletedByName"
+		"Id",
+        "IsDelete",
+        "CreatedDate",
+        "CreatedById",
+        "CreatedByName",
+        "UpdatedDate",
+        "UpdatedById",
+        "UpdatedByName",
+        "DeletedDate",
+        "DeletedById",
+        "DeletedByName",       
+        "nguoiCapNhatUserName",
+        "nguoiXoaUserName",
+        "nguoiTaoUserName",
+        "nguoiTaoUserId",
+        "nguoiCapNhatUserId",
+        "nguoiXoaUserId",
+        "ngayCapNhat",
+        "ngayTao",
+        "ngayXoa",
+        "nguoiTaoUserId"
 	],
 	"Configs": {
 		"Batchs": {

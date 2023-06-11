@@ -26,8 +26,6 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BaseEditComponent } from 'src/app/constants/base-edit.component';
 import { MESSAGE } from 'src/app/constants/message';
 import { ResponseData } from 'src/app/models/response';
-import { RoleService } from 'src/app/services/core/role.service';
-import { CourseService } from 'src/app/services/setting/course/course.service';
 
 @Component({
   selector: 'app-<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>-edit',
@@ -55,7 +53,7 @@ export class <%=SourceTable.Name%>EditComponent extends BaseEditComponent implem
 
     if (this.id) {
       //edit
-      this._<%=LowerFirstChar(SourceTable.Name)%>.get(this.id).subscribe((res: ResponseData) => {
+      this._<%=LowerFirstChar(SourceTable.Name)%>Service.get(this.id).subscribe((res: ResponseData) => {
         if (res.isSuccess) {
           this.formInput.patchValue({
            <%=patchValueForm()%>
