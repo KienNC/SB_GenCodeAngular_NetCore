@@ -1,0 +1,101 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="Newtonsoft.Json" %>
+
+<%@ Property Name="SourceTable" Type="TableSchema"  %>
+<%@ Property Category="Config" Name="Config" Type="ConfigGenerate" Description="Cấu hình chung của genecode" %>
+
+<%@ Register Name="CommonService" Template="..\CommonService.cst" %>
+<%@ Property Name="IsVietNameseTableSetting"  Type="System.Boolean" Default="false" Description="Sử dụng tên bảng kiểu VietNam (Ngăn cách nhau bởi dấu _ ) "%>
+
+import { Component, OnInit, Injector } from '@angular/core';
+import { ComponentContextService, CrudListBase, MasterDataService, EntityMetadataService, GridColumn } from 'tn-shared';
+import { <%=SourceTable.Name%>Service } from './services/<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>.service';
+
+@Component({
+    selector: '<%=SourceTable.Name%>',
+    templateUrl: './<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>.component.html',
+    styleUrls: ['./<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>.component.scss'],
+    providers: [ComponentContextService, EntityMetadataService]
+})
+export class <%=SourceTable.Name%>Component extends CrudListBase implements OnInit {
+    constructor(
+		protected _injection: Injector,
+        protected _<%=SourceTable.Name%>Service: <%=SourceTable.Name%>Service
+    ) {
+        super(_<%=SourceTable.Name%>Service, _injection);
+    }
+    ngOnInit() {
+        this.dataModel.cols = [
+            <%=renderFieldInGrid()%>
+        ];
+        super.ngOnInit();
+    }
+}
+
+<script runat="template">
+    private string GetDataFormat(string dataType) {
+        dataType = dataType.ToLower();
+        string result = "";
+        switch (dataType)
+        {
+            case "system.datetime":
+                result = ", dataType: 'date'";
+                break;  
+            case "system.date":
+                result = ", dataType: 'date'";
+                break;  
+            case "system.short":  
+            case "system.int32":
+            case "system.int64":
+            case "system.decimal":
+            case "system.double":
+            case "system.long":
+                result = ", dataType: 'number'";
+                break;
+			case "system.boolean":
+                result = ", dataType: 'boolean'";
+                break;
+        }
+        return result;
+    }
+    private string LowerFirstChar(string Value) {
+        return Char.ToLowerInvariant(Value[0]) + Value.Substring(1);
+    }
+    private string renderFieldInGrid()
+    {
+        string fields = "";
+        string lastString = ",\n\t\t\t";
+        var columnIgnores = Config.FieldIgnores.ToList();
+        if (Config.Configs.ContainsKey(SourceTable.Name)) {
+            columnIgnores.AddRange(Config.Configs[SourceTable.Name].FieldIgnores.ToList());
+        }
+        for (int i = 0; i < SourceTable.Columns.Count; i++)
+        {
+            string field = SourceTable.Columns[i].Name;
+            string fieldLower = field.ToLower();
+            if (columnIgnores.Any(q => q.ToLower() == fieldLower))
+                continue;
+            string name = LowerFirstChar(field);
+            string dataFormat = GetDataFormat(SourceTable.Columns[i].SystemType.ToString());
+            fields += "new GridColumn({ field: '" + name + "'" + dataFormat + ", header: this._translateService.instant('" + CommonService.GetDescription(SourceTable.Columns[i].Description) + "') })" + lastString;
+        }
+        if (fields.Length > 1)
+        {
+            return fields.Substring(0, fields.Length - lastString.Length);
+        }
+        return fields;
+    }
+</script>
+    

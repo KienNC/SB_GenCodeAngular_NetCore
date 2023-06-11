@@ -1,0 +1,26 @@
+<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Name="SourceTable" Type="TableSchema"%>
+<%@ Property Name="Endpoint" Type="System.String" %>
+import { Injectable, Injector } from '@angular/core';
+import { BaseService } from 'tn-shared';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+@Injectable({
+    providedIn: 'root'
+})
+export class <%=SourceTable.Name%>Service extends BaseService {
+    constructor(http: HttpClient, injector: Injector){
+        super(http, injector,`${environment.apiDomain.<%=Endpoint%>Endpoint}/<%=SourceTable.Name%>`);
+    }
+}

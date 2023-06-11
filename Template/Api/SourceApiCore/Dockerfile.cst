@@ -1,0 +1,21 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS base
+EXPOSE 80
+WORKDIR /app
+COPY ./bin/Debug/netcoreapp3.1/publish /app
+RUN ln -fs /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+ENV SCOPE__SERVICE=<%=ScopeService.ToLower() %>
+ENTRYPOINT ["dotnet", "<%=ScopeService %>.API.dll"]

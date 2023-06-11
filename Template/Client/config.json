@@ -1,0 +1,12 @@
+{
+	"FieldIgnores": [
+		"Id", "IsDelete", "CreatedDate", "CreatedById", "CreatedByName", "UpdatedDate", "UpdatedById", "UpdatedByName", "DeletedDate", "DeletedById", "DeletedByName"
+	],
+	"Configs": {
+		"Batchs": {
+			"FieldIgnores": [
+				
+			],
+		}
+	}
+}

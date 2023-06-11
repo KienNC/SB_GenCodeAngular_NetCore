@@ -1,0 +1,61 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+
+using AutoMapper;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Startup.Lib;
+using System;
+using System.Threading.Tasks;
+using <%=ScopeService %>.API.IntegrationEvents.EventHandling;
+using <%=ScopeService %>.DataContext;
+using <%=ScopeService %>.Service.Configs;
+
+namespace <%=ScopeService %>.API
+{
+    public class Startup : BaseStartup
+    {
+        public Startup(IConfiguration configuration) : base(configuration) { }
+
+        protected override void AddCustomService(IServiceCollection services)
+        {
+            services.DependencyInjectionServices(Configuration);
+            services.AddAutoMapper(typeof(Startup));
+            services.AddTransient<TaskProcessBulkHandler>();
+            services.AddSaveChangeServiceProvider<<%=ScopeService %>DataContext>();
+
+            base.AddCustomService(services);
+        }
+
+        protected override void UseCustomService(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory)
+        {
+
+            base.UseCustomService(app, env, applicationLifetime, loggerFactory);
+        }
+
+        protected override Task OnApplicationStarted(IServiceProvider serviceProvider)
+        {
+            return base.OnApplicationStarted(serviceProvider);
+        }
+    }
+}
+
+
+
+

@@ -1,0 +1,29 @@
+<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="true" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+
+<%@ Register Name="CommonService" Template="..\..\CommonService.cst" %>
+<%@ Property Name="UsingSingularizeString" Type="System.Boolean" Default="true" %>
+
+<%@ Property Name="SourceTable" Type="TableSchema"  %>
+
+
+
+namespace <%=ScopeService %>.Repository.Interfaces
+{
+    public partial interface <%="I" + CommonService.SingularizeString(SourceTable.Name, UsingSingularizeString) + "Repos" %>
+	{
+	}
+}
+
+    

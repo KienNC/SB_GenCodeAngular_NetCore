@@ -1,0 +1,35 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+
+<%@ Property Name="SourceTable" Type="TableSchema"  %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+<%@ Register Name="CommonService" Template="..\..\CommonService.cst" %>
+<%@ Property Name="UsingSingularizeString" Type="System.Boolean" Default="true" %>
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Common.Lib.Models;
+using System.Linq;
+using <%=ScopeService %>.DataContext;
+
+
+namespace <%=ScopeService %>.Repository
+{
+    public partial class <%=SourceTable.Name %>Repos
+    {
+         public <%=CommonService.SingularizeString(SourceTable.Name, UsingSingularizeString) + "Repos" %>(<%= ScopeService + "DataContext" %> dataContext, IServiceProvider serviceProvider) 
+            : base(dataContext, serviceProvider)
+        {
+        }
+    }
+}

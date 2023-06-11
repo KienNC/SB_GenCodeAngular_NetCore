@@ -1,0 +1,12 @@
+{
+	"FieldIgnores": [
+		"Id", "InstanceId", "Created", "CreatedBy", "Modified", "ModifiedBy", "IsDeleted", "IdCmc", "Code"
+	],
+	"Configs": {
+		"Batchs": {
+			"FieldIgnores": [
+				
+			],
+		}
+	}
+}

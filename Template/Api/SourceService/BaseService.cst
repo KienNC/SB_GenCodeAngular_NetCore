@@ -1,0 +1,116 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Category="1.Database" Name="SourceDatabase" Type="DatabaseSchema" %>
+<%@ Property Category="1.Database" Name="SourceTables" Type="TableSchemaCollection" Description="Danh sách các bảng muốn gen code" %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+
+using SB.Core;
+using Microsoft.EntityFrameworkCore;
+
+namespace <%=ScopeService %>.Service.Generated
+{
+    public partial interface IBaseService<T>
+    {
+        Task<IMethodResult<IEnumerable<T>>> GetAllAsync();
+        Task<IMethodResult<T>> GetByIdAsync(Guid id);
+        Task<IMethodResult<Guid>> InsertAsync(T model);
+        Task<IMethodResult<T>> UpdateAsync(T model);
+        Task<IMethodResult<bool>> DeleteAsync(Guid id);
+        Task<IMethodResult<bool>> DeleteMuiltipleAsync(List<Guid> id);
+
+    }
+
+    public partial class BaseService<T> : IBaseService<T> where T : BaseEntity
+    {
+        #region Field
+        private readonly IRepository<T> _baseRepos;
+
+
+        #endregion
+        public BaseService(IRepository<T> baseRepos)
+        {
+            _baseRepos = baseRepos;
+        }
+
+        public virtual async Task<IMethodResult<bool>> DeleteAsync(Guid id)
+        {
+            var item = await _baseRepos.GetByIdAsync(id);
+            if (item != null)
+            {
+                await _baseRepos.DeleteAsync(item);
+                return MethodResult<bool>.ResultWithData(true);
+            }
+            else
+            {
+                return MethodResult<bool>.ResultWithError(Contants.MESS_NotFound, Contants.CODE_NotFound);
+            }
+
+        }
+
+
+        public virtual async Task<IMethodResult<bool>> DeleteMuiltipleAsync(List<Guid> ids)
+        {
+            if (ids == null)
+            {
+                return MethodResult<bool>.ResultWithError(Contants.MESS_NotFound);
+            }
+            var list = _baseRepos.Table.Where(b => ids.Contains(b.Id)).ToList();
+            if (list.Any())
+            {
+                foreach (var item in list)
+                {
+                    await _baseRepos.DeleteAsync(item);
+                }
+            }
+            return MethodResult<bool>.ResultWithData(true);
+        }
+
+
+        public virtual async Task<IMethodResult<IEnumerable<T>>> GetAllAsync()
+        {
+            var list = await _baseRepos.TableNoTracking.ToListAsync();
+            return MethodResult<IEnumerable<T>>.ResultWithData(list);
+        }
+
+        public virtual async Task<IMethodResult<T>> GetByIdAsync(Guid id)
+        {
+            var item = await _baseRepos.GetByIdAsync(id);
+            return MethodResult<T>.ResultWithData(item);
+
+        }
+
+        public virtual async Task<IMethodResult<Guid>> InsertAsync(T model)
+        {
+            try
+            {
+                await _baseRepos.InsertAsync(model);
+                return MethodResult<Guid>.ResultWithData(model.Id);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException(ex.Message);
+            }
+
+        }
+
+        public virtual async Task<IMethodResult<T>> UpdateAsync(T model)
+        {
+            await _baseRepos.UpdateAsync(model);
+            return MethodResult<T>.ResultWithData(model);
+        }
+    }
+}
+
+
+
+

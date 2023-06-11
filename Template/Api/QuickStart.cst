@@ -1,0 +1,185 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="true" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\Common" %>
+<%@ Assembly Name="System.Data" Path="..\Common" %>
+<%@ Assembly Name="System.Data.Entity.Design" Path="..\Common" %>
+<%@ Assembly Name="System.Data.Entity" Path="..\Common" %>
+
+<%@ Assembly Name="Xml.Schema.Linq" Path="..\Common" %>
+
+<%@ Import Namespace="System.Globalization" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="System.Data.Entity.Design.PluralizationServices" %>
+<%@ Import Namespace="System.Dynamic" %>
+
+<%@ Property Category="1.Database" Name="SourceDatabase" Type="DatabaseSchema" %>
+<%@ Property Category="1.Database" Name="SourceTables" Type="TableSchemaCollection" Description="Danh sách các bảng muốn gen code" %>
+<%@ Property Category="1.Database" Name="OnlyCreateEntity" Type="System.Boolean" Description="Chỉ tạo các folder entity" %>
+<%@ Property Name="ScopeName" Type="System.String" Category="3.Common" Description="Tên đơn vị viết liền không dấu" %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="3.Common" Description="Tên dịch vụ" %>
+<%@ Property Name="CoreVersion" Type="System.String" Default="4.2" Description="Phiên bản core đang dùng" Category="3.Common"  %>
+<%@ Property Name="UsingSingularizeString" Type="System.Boolean" Default="false" Description="Sử dụng chuẩn gen từ Entity(dạng số ít)" Category="3.Common"  %>
+<%@ Property Name="IsCoreProject" Type="System.Boolean" Default="false" Description="Là project thuộc core hay không" Category="3.Common"  %>
+<%@ Property Name="ProjectPortPrefix" Type="System.String" Default="" Description="Dải port của dự án (Ví dụ 160, 161, 162)" Category="3.Common"  %>
+<%@ Property Name="DotNetCoreVersion" Type="System.String" Default="net6.0" Description="Phiên bản .NET Core đang dùng" Category="3.Common"  %>
+
+<%@ Property Optional="False" Name="Location" Type="System.String"
+    Default="" Optional="False" Category="3.Common"
+    Description="Thư mục code sau khi gen sẽ lưu lại"
+    Editor="System.Windows.Forms.Design.FolderNameEditor, System.Design, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" %>
+
+<%@ Property Name="DebugDeploymentServerIP" Type="System.String" Default="10.0.68.35" Description="IP máy chủ triển khai các dịch vụ cho dev" Category="4.Debug"  %>
+<%@ Property Name="DebugPort" Type="System.String" Description="Port môi trường debug" Category="4.Debug" %>
+<%@ Property Name="DebugPersonalEnvironment" Type="System.String" 
+    Description="Tên môi trường của từng cá nhân, thường là tên tài khoản Git của người dùng (Ví dụ namnh)" 
+    Category="4.Debug" %>
+<%@ Property Name="DebugEtcdConfig" Type="System.String" 
+    Default="authenticated=true;server=http://10.0.68.35:2379;username=root;password=123456a@" Description="Etcd Connectionstring" Category="4.Debug"  %>
+
+<%@ Property Name="EntityAndDbContextPartial" Type="System.Boolean" Category="5.Generation Overrides (Warning: Có thể mất code đã sửa, cần hiểu rõ trước khi dùng)" Default="false" %>
+<%@ Property Name="ReposPartial" Type="System.Boolean" Category="5.Generation Overrides (Warning: Có thể mất code đã sửa, cần hiểu rõ trước khi dùng)" Default="false" %>
+<%@ Property Name="ServicePartial" Type="System.Boolean" Category="5.Generation Overrides (Warning: Có thể mất code đã sửa, cần hiểu rõ trước khi dùng)" Default="false" %>
+<%@ Property Name="ControllerPartial" Type="System.Boolean" Category="5.Generation Overrides (Warning: Có thể mất code đã sửa, cần hiểu rõ trước khi dùng)" Default="false" %>  
+<%@ Property Name="Startup" Type="System.Boolean" Category="5.Generation Overrides (Warning: Có thể mất code đã sửa, cần hiểu rõ trước khi dùng)" Default="false" %>
+<%@ Property Name="Program" Type="System.Boolean" Category="5.Generation Overrides (Warning: Có thể mất code đã sửa, cần hiểu rõ trước khi dùng)" Default="false" %>
+<%@ Property Name="Csproj" Type="System.Boolean" Category="5.Generation Overrides (Warning: Có thể mất code đã sửa, cần hiểu rõ trước khi dùng)" Default="false" %>
+
+<%@ Property Name="Author" Type="System.String" Default="" Description="Tác giả gen project" Category="6.Other"  %>
+<%@ Property Name="UsingOldTemplate" Type="System.Boolean" Default="false" Description="Sử dụng cách gen reference kiểu cũ" Category="6.Other" %>
+<%@ Property Name="MappingFieldAndTableFK"  Optional="True" Type="System.String" Default="" Description="Mapping field và table cho FK kiểu cũ" Category="6.Other" %>
+
+<%@ Register Name="StartDataContext" Template="SourceDataContext\StartDataContext.cst" %>
+<%@ Register Name="StartService" Template="SourceService\StartService.cst" %>
+<%@ Register Name="StartRepository" Template="SourceRepository\StartRepository.cst" %>
+<%@ Register Name="StartApiCore" Template="SourceApiCore\StartApiCore.cst" %>
+<%@ Register Name="Solution" Template="Solution.cst" %>
+<%@ Register Name="StartClient" Template="SourceClient\StartClient.cst" %>
+
+<%@ Register Name="CommonService" Template="CommonService.cst" %>
+
+
+<% 
+   CreateApiCore();  
+%>
+ 
+<script runat="template">
+    public void CreateApiCore() {
+        Location = Path.GetFullPath(Location);
+        string folderSolution = Location +  "\\" + ScopeService;
+        CreateFolderSolution(folderSolution);
+    }
+    
+    private void CreateFolderSolution(string outPut) {
+        if (!Directory.Exists(outPut))
+            Directory.CreateDirectory(outPut);
+        if (!OnlyCreateEntity) {
+            CreateSolution(outPut);
+        }
+        RenderClient(outPut); //done
+        
+        RenderDataContext(outPut); //done
+        RenderService(outPut);  //done
+        RenderApiCore(outPut);
+       
+    }
+    
+    private void CreateSolution(string outPut) {
+        var entityTemplate = this.Create<Solution>();
+        var fileName = String.Format("{0}\\{1}.sln", outPut, ScopeService + ".API");
+            
+        if (File.Exists(fileName) && Csproj) {
+            File.Delete(fileName);
+        }
+            
+        if (!File.Exists(fileName))
+        {
+            this.CopyPropertiesTo(entityTemplate);
+            entityTemplate.ScopeService = ScopeService;
+            Response.WriteLine(fileName);
+            entityTemplate.RenderToFile(fileName, true);
+        }
+    }
+    
+    private void RenderDataContext(string outPut)
+    {
+        var entityTemplate = this.Create<StartDataContext>();
+        this.CopyPropertiesTo(entityTemplate);
+        entityTemplate.CreateDataContext();
+    }
+     
+    private void RenderRepository(string outPut)
+    {
+        var entityTemplate = this.Create<StartRepository>();
+        entityTemplate.ScopeService = ScopeService;
+        entityTemplate.SourceDatabase = SourceDatabase;
+        entityTemplate.SourceTables = SourceTables;
+        entityTemplate.Location = outPut;
+        entityTemplate.Csproj = Csproj;
+        entityTemplate.ReposPartial = ReposPartial;
+        entityTemplate.EntityNamespace = EntityNamespace;
+        entityTemplate.DotNetCoreVersion = DotNetCoreVersion;
+        this.CopyPropertiesTo(entityTemplate);
+        entityTemplate.CreateRepository();
+    }
+    
+    private void RenderService(string outPut)
+    {
+        var entityTemplate = this.Create<StartService>();
+        entityTemplate.ScopeService = ScopeService;
+        entityTemplate.SourceDatabase = SourceDatabase;
+        entityTemplate.SourceTables = SourceTables;
+        entityTemplate.Location = outPut;
+        entityTemplate.Csproj = Csproj;
+        entityTemplate.ServicePartial = ServicePartial;
+        entityTemplate.EntityNamespace = EntityNamespace;
+        entityTemplate.DotNetCoreVersion = DotNetCoreVersion;
+        this.CopyPropertiesTo(entityTemplate);
+        entityTemplate.CreateService();
+    }
+   
+    private void RenderApiCore(string outPut)
+    {
+        var entityTemplate = this.Create<StartApiCore>();
+        entityTemplate.ScopeService = ScopeService;
+        entityTemplate.SourceDatabase = SourceDatabase;
+        entityTemplate.SourceTables = SourceTables;
+        entityTemplate.Location = outPut;
+        entityTemplate.Csproj = Csproj;
+        entityTemplate.ScopeName = ScopeName;
+        entityTemplate.IsCoreProject = IsCoreProject;
+        entityTemplate.ScopeService = ScopeService;
+        entityTemplate.IsStartup = Startup;
+        entityTemplate.IsProgram = Program;
+        entityTemplate.ControllerPartial = ControllerPartial;
+        entityTemplate.DebugPersonalEnvironment = DebugPersonalEnvironment;
+        entityTemplate.DebugPort = DebugPort;
+        entityTemplate.EntityNamespace = EntityNamespace;
+        entityTemplate.DebugEtcdConfig = DebugEtcdConfig;
+        entityTemplate.DotNetCoreVersion = DotNetCoreVersion;
+        entityTemplate.ProjectPortPrefix = ProjectPortPrefix;
+        entityTemplate.DebugDeploymentServerIP = DebugDeploymentServerIP;
+        this.CopyPropertiesTo(entityTemplate);
+        entityTemplate.CreateApiCore();
+    }
+    
+    private void RenderClient(string outPut)
+    {
+        var entityTemplate = this.Create<StartClient>();
+        entityTemplate.ScopeService = ScopeService;
+        entityTemplate.SourceDatabase = SourceDatabase;
+        entityTemplate.SourceTables = SourceTables;
+        entityTemplate.Location = outPut;
+        entityTemplate.Csproj = Csproj;
+        entityTemplate.ServicePartial = ServicePartial;
+        entityTemplate.EntityNamespace = EntityNamespace;
+        entityTemplate.DotNetCoreVersion = DotNetCoreVersion;
+        this.CopyPropertiesTo(entityTemplate);
+        entityTemplate.CreateClient();
+    }
+</script>

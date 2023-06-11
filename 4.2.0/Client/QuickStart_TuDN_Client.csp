@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<codeSmith xmlns="http://www.codesmithtools.com/schema/csp.xsd">
+  <variables>
+    <add key="ConnectionString1" value="Data Source=10.0.69.2;Initial Catalog=DHVINH_Dev_DBDaoTao_ChinhQuy;Persist Security Info=True;User ID=admin;Password=trinam@123" />
+  </variables>
+  <propertySets>
+    <propertySet name="QuickStart.cs" output="QuickStart.cs" template="D:\Projects\DHVinh\SourceCode\MicroserviceCommon\CodeGeneration\4.2.0\Client\QuickStart.cst">
+      <property name="popupWidth">600</property>
+      <property name="popupHeight">400</property>
+      <property name="IsVietNameseTableSetting">True</property>
+      <property name="ClearFolder">True</property>
+      <property name="Endpoint">dbDaoTao</property>
+      <property name="SourceTables">
+        <connectionString>$(ConnectionString1)</connectionString>
+        <providerType>SchemaExplorer.SqlSchemaProvider,SchemaExplorer.SqlSchemaProvider</providerType>
+        <tableList>
+      <table>
+        <owner>dbo</owner>
+        <name>tbl_DM_DauDiem</name>
+      </table>
+    </tableList>
+      </property>
+      <property name="Location">D:\Projects\DHVinh\SourceCode\Generated\Client</property>
+      <property name="SourceDatabase">
+        <connectionString>$(ConnectionString1)</connectionString>
+        <providerType>SchemaExplorer.SqlSchemaProvider,SchemaExplorer.SqlSchemaProvider</providerType>
+      </property>
+      <property name="EntityNamespace">qldt</property>
+    </propertySet>
+  </propertySets>
+</codeSmith>

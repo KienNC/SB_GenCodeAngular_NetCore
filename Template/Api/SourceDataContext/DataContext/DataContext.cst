@@ -1,0 +1,77 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\..\Common" %>
+<%@ Assembly Name="Newtonsoft.Json" Path="..\..\..\Common" %>
+<%@ Import Namespace="System.Text" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="Newtonsoft.Json" %>
+
+<%@ Property Category="1.Database" Name="SourceDatabase" Type="DatabaseSchema" %>
+<%@ Property Category="1.Database" Name="SourceTables" Type="TableSchemaCollection" Description="Danh sách các bảng muốn gen code" %>
+<%@ Register Name="CommonService" Template="..\..\CommonService.cst" %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+<%@ Property Name="UsingSingularizeString" Type="System.Boolean" Default="true" %>
+<%@ Property Name="UsingOldTemplate" Type="System.Boolean" Default="false" %>
+<%@ Property Name="CoreVersion" Type="System.String"  %>
+<%@ Property Name="Author" Type="System.String"  %>
+<%@ Property Name="MappingFieldAndTableFK" Optional="True" Type="System.String"%>
+
+<%=CommonService.GenerateAuthor(CoreVersion, Author)%>
+using <%=ScopeService %>.DataContext.Entity;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+
+namespace <%=ScopeService %>.DataContext
+{
+    
+    public partial class <%=ScopeService %>DataContext : DbContext
+    {
+    <% for (int i = 0; i < SourceTables.Count; i++) { %>
+        public virtual DbSet<<%=SourceTables[i].Name %>> <%=SourceTables[i].Name %> { get; set; }
+    <%} %>
+        public <%=ScopeService %>DataContext(DbContextOptions<<%=ScopeService %>DataContext> options) : base(options)
+        {
+        }
+
+        public <%=ScopeService %>DataContext(): base()
+        {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+
+                // 2. Create the query filter
+                var parameter = Expression.Parameter(entityType.ClrType);
+
+                // EF.Property<bool>(post, "IsDeleted")
+                var propertyMethodInfo = typeof(EF).GetMethod("Property").MakeGenericMethod(typeof(bool));
+                var isDeletedProperty = Expression.Call(propertyMethodInfo, parameter, Expression.Constant("IsDelete"));
+
+                // EF.Property<bool>(post, "IsDeleted") == false
+                BinaryExpression compareExpression = Expression.MakeBinary(ExpressionType.Equal, isDeletedProperty, Expression.Constant(false));
+
+                // post => EF.Property<bool>(post, "IsDeleted") == false
+                var lambda = Expression.Lambda(compareExpression, parameter);
+
+                modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
+            }
+        
+           
+        }
+        
+    }
+
+    
+}
+

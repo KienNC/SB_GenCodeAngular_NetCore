@@ -1,0 +1,79 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import  Namespace="System.Net" %>
+<%@ Import  Namespace="System.Net.Sockets" %>
+ <%@ Property Name="DebugDeploymentServerIP" Type="System.String" %>
+
+<%@ Property Name="DebugPort" Type="System.String"%>
+<%@ Property Name="DebugEtcdConfig" Type="System.String" %>
+<%@ Property Name="ScopeName" Type="System.String"%>
+<%@ Property Name="DebugPersonalEnvironment" Type="System.String"%>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+<%@ Property Name="ProjectPortPrefix" Type="System.String" %>
+
+{
+  "iisSettings": {
+    "windowsAuthentication": false, 
+    "anonymousAuthentication": true, 
+    "iisExpress": {
+      "applicationUrl": "http://localhost:<%=GetPort()%>/", 
+      "sslPort": 0
+    }
+  }, 
+  "$schema": "http://json.schemastore.org/launchsettings.json", 
+  "profiles": {
+    "IIS Express <%=DebugPersonalEnvironment%>": {
+      "commandName": "IISExpress", 
+      "launchBrowser": true, 
+      "launchUrl": "swagger", 
+      "environmentVariables": {
+        "SPRING__APPLICATION__RAWNAME": "<%=ScopeService.ToLower()%>", 
+        "EUREKA__INSTANCE__IPADDRESS": "<%=GetLocalIPAddress()%>", 
+        "EUREKA__INSTANCE__PORT": "<%=GetPort()%>", 
+        "EUREKA__CLIENT__SERVICEURL": "http://<%=DebugDeploymentServerIP%>:<%=ProjectPortPrefix%>02/eureka/", 
+        "SWAGGER__DISABLEPATHBASEFORFILTER": "false", 
+        "ASPNETCORE_ENVIRONMENT": "<%=DebugPersonalEnvironment.ToLower()%>", 
+        "SPRING__APPLICATION__NAME": "<%=ScopeService.ToLower()%>.<%=DebugPersonalEnvironment.ToLower()%>", 
+        "SCOPE__NAME": "<%= ScopeName %>", 
+        "SCOPE__ENVIRONMENT": "development_local, <%=DebugPersonalEnvironment%>", 
+        "SCOPE__SERVICE": "<%=ScopeService.ToLower()%>.<%=DebugPersonalEnvironment.ToLower()%>", 
+        "ETCD__CONFIG": "<%=DebugEtcdConfig%>"
+      }
+    }
+  }
+}
+
+<script runat="template">
+    public string GetLocalIPAddress()
+    {
+        string result = "";
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork&& ip.ToString().Contains("192.168.2."))
+            {
+                result = ip.ToString();
+            }
+        }
+        return result;
+    }
+    
+    public string GetPort()
+    {
+       if (DebugPort == "") {
+          Random rd = new Random();
+          DebugPort = rd.Next(10000, 99999).ToString();
+       }
+       return DebugPort;
+    } 
+</script>

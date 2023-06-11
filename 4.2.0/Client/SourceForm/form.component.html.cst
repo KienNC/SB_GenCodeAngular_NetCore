@@ -1,0 +1,22 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+
+<tn-dialog #dialog [dataModel]="dataModel" [dataContext]="dataContext" [closeOnEscape]="false"
+    [header]="popupHeader | translate" [(visible)]="dataModel.showEditForm" [popupSize]="dataModel.popupSize"
+    (onHide)="cancel()" (visibleChange)="visibleChangedDialog($event)" (onShow)="onShowDialog($event)">
+    <tn-custom-scrollbar #scrollbar>
+        <crud-form #crudForm [dataModel]="dataModel" [dataContext]="dataContext" [formSchema]="dataModel.formSchema"
+            [model]="dataModel.data">
+        </crud-form>
+    </tn-custom-scrollbar>
+</tn-dialog>

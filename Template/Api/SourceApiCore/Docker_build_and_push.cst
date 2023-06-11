@@ -1,0 +1,33 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Name="ScopeName" Type="System.String" %>
+<%@ Property Name="IsCoreProject" Type="System.Boolean" Default="false"  %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+
+@echo off
+
+dotnet publish -c Release -o bin/Debug/netcoreapp3.1/publish
+docker build -f Dockerfile -t dockerhub.dttt.vn/<%= GetIsCore(IsCoreProject) %>/<%=ScopeService.ToLower() %>.api:%1 .
+docker push dockerhub.dttt.vn/<%= GetIsCore(IsCoreProject)%>/<%=ScopeService.ToLower() %>.api:%1
+
+
+<script runat="template">
+
+public string GetIsCore(Boolean isCore) {
+    if (isCore) {
+        return "tn.core";
+    }
+    return ScopeName.ToLower();   
+}
+
+</script>

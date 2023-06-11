@@ -1,0 +1,131 @@
+<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+<%@ Assembly Name="Newtonsoft.Json.dll" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="Newtonsoft.Json" %>
+
+<%@ Property Name="SourceTable" Type="TableSchema"  %>
+<%@ Property Category="Config" Name="Config" Type="ConfigGenerate" Description="Cấu hình chung của genecode" %>
+
+<%@ Property Name="popupWidth" Type="System.Int32" Category="popup"  Description=""%>
+<%@ Property Name="popupHeight" Type="System.Int32" Category="popup" Description=""%>
+
+<%@ Property Name="IsVietNameseTableSetting" Type="System.Boolean" Default="false" Description="Sử dụng tên bảng kiểu VietNam (Ngăn cách nhau bởi dấu _ ) "%>
+<%@ Register Name="CommonService" Template="..\CommonService.cst" %>
+
+import { Component, OnInit, Injector } from '@angular/core';
+import { CrudFormBase, FormSchemaItem, ComponentContextService, EntityMetadataService, LabelSchema, TextControlSchema, TextAreaControlSchema, SwitchControlSchema,  DateTimeControlSchema, FormEvent} from 'tn-shared';
+import { <%=SourceTable.Name%>Service } from '../services/<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>.service';
+
+@Component({
+    selector: '<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>-form',
+    templateUrl: './<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>-form.component.html',
+    styleUrls: ['./<%=CommonService.GetNameFile(SourceTable.Name,IsVietNameseTableSetting)%>-form.component.scss'],
+    providers: [ComponentContextService, EntityMetadataService]
+})
+export class <%=SourceTable.Name%>FormComponent extends CrudFormBase implements OnInit {
+    constructor(
+        protected _injection: Injector,
+        protected _<%=SourceTable.Name%>Service: <%=SourceTable.Name%>Service
+    ) {
+        super(_<%=SourceTable.Name%>Service, _injection);
+    }
+    ngOnInit() {
+        super.ngOnInit();
+        this.dataModel.popupSize.width = <%=popupWidth%>;
+        this.dataModel.popupSize.height = <%=popupHeight%>;
+        this.dataModel.formSchema = <FormSchemaItem[]>[
+            <%=renderFieldInform()%>
+        ];
+    }
+    async onFormInitialized(constrols: FormEvent) {
+        if (this.dataModel.data.id) {
+            this.popupHeader = 'Thông tin chi tiết <%=CommonService.GetDescription(SourceTable.Description)%>';
+            await this.getDetail();
+        }
+        else {
+            this.popupHeader = 'Thêm mới <%=CommonService.GetDescription(SourceTable.Description)%>';
+        }
+    }
+}
+<script runat="template">
+    private string GetCShapType(string dataType) {
+        dataType = dataType.ToLower();
+        string result = "TextControlSchema";
+        switch (dataType)
+        {
+            case "system.int32":
+                result = "TextControlSchema";
+                break;
+            case "system.int64":
+                result = "TextControlSchema";
+                break;
+            case "system.datetime":
+                result = "DateTimeControlSchema";
+                break;  
+            case "system.string":
+                result = "TextControlSchema";
+                break;
+            case "system.boolean":
+                result = "SwitchControlSchema";
+                break;
+            case "system.timespan":
+                result = "DateTimeControlSchema";
+                break;
+            break; 
+        }
+        return result;
+    }
+    
+    private class DropDownItem
+    {
+        public bool isCommonMasterData { get; set; }
+        public string MasterDataCode { get; set; }     
+    }
+    
+    private string LowerFirstChar(string Value) {
+        return Char.ToLowerInvariant(Value[0]) + Value.Substring(1);
+    }
+    private string Tab(int tab, bool haveNewRow = true) {
+        string result = "";
+        if (haveNewRow)
+            result = "\n";
+        for(int i = 0; i < tab; i++)
+            result += "\t";
+        return result;
+    }
+    private string renderFieldInform()
+    {
+        string fields = "";
+        string lastString = ",\n";
+        var columnIgnores = Config.FieldIgnores.ToList();
+        if (Config.Configs.ContainsKey(SourceTable.Name)) {
+            columnIgnores.AddRange(Config.Configs[SourceTable.Name].FieldIgnores.ToList());
+        }
+        for (int i = 0; i < SourceTable.Columns.Count; i++)
+        {
+            string field = SourceTable.Columns[i].Name;
+            string fieldLower = field.ToLower();
+            if (columnIgnores.Any(q => q.ToLower() == fieldLower))
+                continue;
+            string name = LowerFirstChar(field);
+            string validators = SourceTable.Columns[i].AllowDBNull == true ? "" : "," + Tab(5) + "validators: { required: true }";
+            string typeControll = GetCShapType(SourceTable.Columns[i].SystemType.ToString());
+            fields += Tab(3, false) + "new LabelSchema({" + Tab(4) + "field: '" + name + "Label'," + Tab(4) + "for: '" + name + "'," + Tab(4) + "text: this._translateService.instant('" + CommonService.GetDescription(SourceTable.Columns[i].Description) + "')" + Tab(3) + "})," 
+                    + Tab(3) + "new " + typeControll + "({" + Tab(4) + "field: '" + name + "'" + validators + "" + Tab(3) + "})" + lastString; 
+        }
+        if (fields.Length > 1 )
+        {
+            return fields.Substring(0, fields.Length - lastString.Length).Substring(Tab(3, false).Length);
+        }
+        return fields;
+    }
+</script>
