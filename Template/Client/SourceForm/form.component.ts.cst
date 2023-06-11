@@ -146,7 +146,7 @@ export class <%=SourceTable.Name%>EditComponent extends BaseEditComponent implem
     private string renderControl(){
          string fields = "\t";
         string lastString = ",\n\t\t\t";
-          var columnIgnores = Config.FieldIgnores.ToList();    
+          var columnIgnores = Config.FieldFormIgnores.ToList();    
          
         for (int i = 0; i < SourceTable.Columns.Count; i++)
         {
@@ -174,8 +174,8 @@ export class <%=SourceTable.Name%>EditComponent extends BaseEditComponent implem
     
     private string patchValueForm(){
          string fields = "\t";
-        string lastString = ",\n\t\t\t\t\t\t";
-          var columnIgnores = Config.FieldIgnores.ToList();    
+        string lastString = ",\n\t\t\t";
+          var columnIgnores = Config.FieldFormIgnores.ToList();    
         for (int i = 0; i < SourceTable.Columns.Count; i++)
         {
             string field = SourceTable.Columns[i].Name;

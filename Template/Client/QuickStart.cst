@@ -59,7 +59,7 @@
         }
         RenderForm(outPut, config);
         RenderService(outPut);
-      //  RenderList(outPut, config);
+        RenderList(outPut, config);
      //   RenderRouting(outPut);
       //RenderModule(outPut);
       //  RenderMenuLink(outPut);
@@ -134,7 +134,8 @@
         entityTemplate.CreateFolderForm();
     }
     public class ConfigGenerate {
-        public string[] FieldIgnores { get; set; }
+        public string[] FieldFormIgnores { get; set; }
+        public string[] FieldGridIgnores { get; set; }
        //public TableConfig Configs { get; set; }
     }
 

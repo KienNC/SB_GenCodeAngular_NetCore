@@ -1,0 +1,70 @@
+﻿<form nz-form [formGroup]="formInput" >
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='kieuLoai'>kieuLoai</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24'>
+			<input nz-input formControlName='kieuLoai' type='number'>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label nzRequired  [nzSm]='6' [nzXs]='24' nzFor='userId'>userId</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24' nzErrorTip='userId không được bỏ trống!'>
+			<input nz-input  formControlName='userId' type='number'>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='content'>content</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24'>
+			<input nz-input formControlName='content' type='text' placeholder='không nhập ký tự đặc biệt !@#$%...'>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='images'>images</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24'>
+			<input nz-input formControlName='images' type='text' placeholder='không nhập ký tự đặc biệt !@#$%...'>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='like'>like</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24'>
+			<input nz-input formControlName='like' type='number'>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='comment'>comment</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24'>
+			<input nz-input formControlName='comment' type='number'>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='sort'>sort</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24'>
+			<input nz-input formControlName='sort' type='number'>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='pin'>pin</nz-form-label>
+		<nz-form-control [nzSm]='3' [nzXs]='3' nzFor='pin' >
+			<label style='vertical-align: middle;'  formControlName='pin' nz-checkbox></label>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='suDung'>suDung</nz-form-label>
+		<nz-form-control [nzSm]='3' [nzXs]='3' nzFor='suDung' >
+			<label style='vertical-align: middle;'  formControlName='suDung' nz-checkbox></label>
+		</nz-form-control>
+	</nz-form-item>
+	<nz-form-item>
+		<nz-form-label  [nzSm]='6' [nzXs]='24' nzFor='soLuotXem'>soLuotXem</nz-form-label>
+		<nz-form-control [nzSm]='14' [nzXs]='24'>
+			<input nz-input formControlName='soLuotXem' type='number'>
+		</nz-form-control>
+	</nz-form-item>
+	
+  <nz-form-item nz-row class="register-area">
+    <nz-form-control [nzSpan]="14" [nzOffset]="6">
+      <button nz-button nzType="primary" class="m-r-5" (click)="addOrEdit()">Lưu</button>
+      <button nz-button (click)="onExit()" >Thoát</button>
+    </nz-form-control> 
+  </nz-form-item>
+</form>
+
