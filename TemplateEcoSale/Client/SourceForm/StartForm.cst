@@ -46,7 +46,7 @@
             if (!File.Exists(fileName))
     		{
                 this.CopyPropertiesTo(entityTs);
-                entityTs.EntityNamespace = "";
+                entityTs.EntityNamespace = EntityNamespace;
                 entityTs.SourceTable = entity;
 //                entityTs.popupWidth = popupWidth;
 //                entityTs.popupHeight = popupHeight; 
@@ -60,7 +60,7 @@
     		{
                 this.CopyPropertiesTo(entityHtml);
                 entityHtml.SourceTable = entity;
-                entityHtml.EntityNamespace = "";
+                entityHtml.EntityNamespace = EntityNamespace;
                 Response.WriteLine(fileHtml);
                 entityHtml.RenderToFile(fileHtml, true);
     		}
