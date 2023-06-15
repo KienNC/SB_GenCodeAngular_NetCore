@@ -5,6 +5,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BaseEditComponent } from 'src/app/constants/base-edit.component';
 import { MESSAGE } from 'src/app/constants/message';
 import { ResponseData } from 'src/app/models/response';
+import { MxhFeedService } from 'src/app/services//mxh-feed.service';
 
 @Component({
   selector: 'app-mxh-feed-edit',
@@ -13,13 +14,12 @@ import { ResponseData } from 'src/app/models/response';
 })
 export class MxhFeedEditComponent extends BaseEditComponent implements OnInit {
   constructor(
-    public modal: NzModalRef,
+    private modal: NzModalRef,
     private fb: FormBuilder,
-    private roleService: RoleService,
     private notification: NzNotificationService,
     private _mxhFeedService: MxhFeedService
   ) {
-    super(modal)
+    super()
   }
   ngOnInit() {
     this.initForm();
@@ -41,8 +41,8 @@ export class MxhFeedEditComponent extends BaseEditComponent implements OnInit {
 
     if (this.id) {
       //edit
-      this._mxhFeedService.get(this.id).subscribe((res: ResponseData) => {
-        if (res.isSuccess) {
+      this._mxhFeedService.getDetail(this.id).then((res: ResponseData) => {
+        if (res.success) {
           this.formInput.patchValue({
            	kieuLoai: res.data.kieuLoai,
 			userId: res.data.userId,
@@ -72,21 +72,21 @@ export class MxhFeedEditComponent extends BaseEditComponent implements OnInit {
     }
 
     if (!this.id) {
-      this._mxhFeedService.create(body).subscribe((res: ResponseData) => {
-        if (res.isSuccess) {
+      this._mxhFeedService.create(body).then((res: ResponseData) => {
+        if (res.success) {
           this.notification.success(MESSAGE.SUCCESS, MESSAGE.ADD_SUCCESS);
           this.modal.close(true);
         } else {
-          this.notification.error(res.errorCode, res.message);
+          this.notification.error(res.error, res.message);
         }
       });
     } else {
-      this._mxhFeedService.update(body).subscribe((res: ResponseData) => {
-        if (res.isSuccess) {
+      this._mxhFeedService.update(body).then((res: ResponseData) => {
+        if (res.success) {
           this.notification.success(MESSAGE.SUCCESS, MESSAGE.UPDATE_SUCCESS);
           this.modal.close(true);
         } else {
-          this.notification.error(res.errorCode, res.message);
+          this.notification.error(res.error, res.message);
         }
       });
     }

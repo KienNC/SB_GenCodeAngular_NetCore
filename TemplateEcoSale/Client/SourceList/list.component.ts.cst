@@ -24,9 +24,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { BaseListComponent } from 'src/app/constants/baseListComponent';
 import { GridColumn } from 'src/app/constants/form-schema';
-import { FormRoleComponent } from 'src/app/pages/quantri/role/role-edit/form-role.component';
-import { <%=SourceTable.Name%>Service } from 'src/app/services/setting/course/course.service';
-import { McourseEditComponent } from './mcourse-edit/mcourse-edit.component';
+import { <%=SourceTable.Name%>Service } from 'src/app/services/<%=EntityNamespace%>/<%=CommonService.GetNameFile(SourceTable.Name, IsVietNameseTableSetting)%>.service';
 import { MESSAGE } from 'src/app/constants/message';
 
 @Component({

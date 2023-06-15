@@ -1,4 +1,13 @@
-﻿@Component({
+﻿import { Component } from '@angular/core';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NgxSpinnerService } from 'ngx-spinner';
+import { BaseListComponent } from 'src/app/constants/baseListComponent';
+import { GridColumn } from 'src/app/constants/form-schema';
+import { MxhFeedService } from 'src/app/services/Test/mxh-feed.service';
+import { MESSAGE } from 'src/app/constants/message';
+
+@Component({
   selector: 'app-mxh-feed-list',
   templateUrl: './mxh-feed-list.component.html',
   styleUrls: ['./mxh-feed-list.component.scss']
@@ -15,91 +24,91 @@ export class MxhFeedListComponent extends BaseListComponent {
   
   ngOnInit() {
     this.gridColums = [
-    	new GridColumn({,
+    	new GridColumn({
 			field: 'kieuLoai',
 			header: 'kieuLoai',
 			thWidth: '120px',
 			class: 'text-right',
 			dataType: 'number'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'userId',
 			header: 'userId',
 			thWidth: '120px',
 			class: 'text-right',
 			dataType: 'number'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'content',
 			header: 'content',
 			thWidth: '120px',
 			class: 'text-left',
 			
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'images',
 			header: 'images',
 			thWidth: '120px',
 			class: 'text-left',
 			
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'like',
 			header: 'like',
 			thWidth: '120px',
 			class: 'text-right',
 			dataType: 'number'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'comment',
 			header: 'comment',
 			thWidth: '120px',
 			class: 'text-right',
 			dataType: 'number'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'sort',
 			header: 'sort',
 			thWidth: '120px',
 			class: 'text-right',
 			dataType: 'number'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'pin',
 			header: 'pin',
 			thWidth: '120px',
 			class: 'text-center',
 			dataType: 'boolean'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'suDung',
 			header: 'suDung',
 			thWidth: '120px',
 			class: 'text-center',
 			dataType: 'boolean'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'soLuotXem',
 			header: 'soLuotXem',
 			thWidth: '120px',
 			class: 'text-right',
 			dataType: 'number'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'updatedById',
 			header: 'updatedById',
 			thWidth: '120px',
 			class: 'text-right',
 			dataType: 'number'
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'updatedByName',
 			header: 'updatedByName',
 			thWidth: '120px',
 			class: 'text-left',
 			
 		}),
-		new GridColumn({,
+		new GridColumn({
 			field: 'updatedDate',
 			header: 'updatedDate',
 			thWidth: '120px',
@@ -111,9 +120,13 @@ export class MxhFeedListComponent extends BaseListComponent {
   }
 
   gridLoadData() {
-    this.setSearchPage();
-    this._mxhFeedService.search(this.searchModel).subscribe(res=>{
-      if(res.isSuccess){
+    let filter = {
+      ... this.getGridOption(),
+      ...this.searchInput
+    }
+    
+    this._mxhFeedService.timTheoDieuKien(filter).subscribe(res=>{
+      if(res.success){
         this.gridData = res.data;
         this.totalRecord = res.totalRecord
       }
@@ -132,7 +145,7 @@ export class MxhFeedListComponent extends BaseListComponent {
 
   onAddNew() {
     let modal = this._modalService.create({
-      nzTitle: 'Thêm mới người dùng',
+      nzTitle: 'Thêm mới',
       nzContent: MxhFeedEditComponent,
       nzClosable: true,
       nzFooter: null,
@@ -148,7 +161,7 @@ export class MxhFeedListComponent extends BaseListComponent {
 
   onEdit(id) {
     let modal = this._modalService.create({
-      nzTitle: 'Cập nhật người dùng',
+      nzTitle: 'Cập nhật',
       nzContent: MxhFeedEditComponent,
       nzClosable: true,
       nzFooter: null,
@@ -176,7 +189,7 @@ export class MxhFeedListComponent extends BaseListComponent {
         this.spinner.show();
         this._mxhFeedService.delete(id).subscribe(res=>{
           this.spinner.hide()
-          if(res.isSuccess){
+          if(res.success){
             this._notification.success(MESSAGE.SUCCESS,MESSAGE.DELETE_SUCCESS)
             this.gridLoadData();
           }         
@@ -185,10 +198,9 @@ export class MxhFeedListComponent extends BaseListComponent {
     });
   }
 
-
   search(): void {
     this.gridLoadData()
   }
-
 }
+
     

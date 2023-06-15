@@ -46,7 +46,7 @@
             if (!File.Exists(fileName))
     		{
                 this.CopyPropertiesTo(entityTs);
-                entityTs.EntityNamespace = "";
+                entityTs.EntityNamespace = EntityNamespace;
                 entityTs.SourceTable = entity;
                 Response.WriteLine(fileName);
                 entityTs.RenderToFile(fileName, true);
@@ -57,7 +57,7 @@
             if (!File.Exists(fileHtml))
     		{
                 this.CopyPropertiesTo(entityHtml);
-                entityHtml.EntityNamespace = "";
+                entityHtml.EntityNamespace = EntityNamespace;
                 entityHtml.SourceTable = entity;
                 Response.WriteLine(fileHtml);
                 entityHtml.RenderToFile(fileHtml, true);

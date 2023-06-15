@@ -22,7 +22,7 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { ResponseData } from "src/app/models/response";
 import { environment } from "src/environments/environment";
-import { BaseService } from "../../base/base.service";
+import { BaseService } from "../base.service";
 @Injectable({
   providedIn: 'root'
 })
