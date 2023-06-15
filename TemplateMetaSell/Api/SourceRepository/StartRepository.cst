@@ -1,0 +1,359 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+<%@ Assembly Name="Xml.Schema.Linq" Path="..\..\Common" %>
+
+
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Category="1.Database" Name="SourceDatabase" Type="DatabaseSchema" %>
+<%@ Property Category="1.Database" Name="SourceTables" Type="TableSchemaCollection" Description="Danh sách các bảng muốn gen code" %>
+<%@ Property Category="1.Database" Name="OnlyCreateEntity" Type="System.Boolean" Description="Chỉ tạo các folder entity" %>
+<%@ Property Category="1.Database" Name="OnlyCreateFileNeedModify" Type="System.Boolean" Description="Chỉ tạo các file cần modify khi tạo mới 1 entity" %>
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+<%@ Property Name="Location" Type="System.String"
+    Default="" Optional="False" Category="Output"
+    Description="This is the path to the Solution location."
+    Editor="System.Windows.Forms.Design.FolderNameEditor, System.Design, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" %>
+  <%@ Property Name="Csproj" Type="System.Boolean" Default="false" %>
+  <%@ Property Name="ReposPartial" Type="System.Boolean" Default="false" %>
+<%@ Property Name="DotNetCoreVersion" Type="System.String"  %>
+<%@ Property Name="CoreVersion" Type="System.String"  %>
+<%@ Property Name="Author" Type="System.String"  %>
+
+<%@ Register Name="Repository" Template="Repository\Repository.cst" %>
+<%@ Register Name="OverrideRepository" Template="Repository\OverrideRepository.cst" %>
+<%@ Register Name="IRepository" Template="IRepository.cst" %>
+<%@ Register Name="Configs" Template="Configs.cst" %>
+<%@ Register Name="DIAdditionalRepos" Template="Configs/DIAdditionalRepos.cst" %>
+<%@ Register Name="DependencyInjectionRepos" Template="Generated/DependencyInjectionRepos.cst" %>
+<%@ Register Name="Interface" Template="Generated/Interface.cst" %>
+<%@ Register Name="Repos" Template="Generated/Repos.cst" %>
+<%@ Register Name="InterfacesOverride" Template="Interfaces/InterfacesOverride.cst" %>
+<%@ Register Name="Project" Template="Project.cst" %>
+<%@ Register Name="OverrideRepos" Template="OverrideRepos.cst" %>
+<%@ Property Name="UsingSingularizeString" Type="System.Boolean" Default="true" %>
+<%@ Register Name="CommonService" Template="..\CommonService.cst" %>
+
+<% CreateRepository(); %>
+<script runat="template">
+   
+    public void CreateRepository() {
+        Location = Path.GetFullPath(Location);
+        string folderRepository = Location + "\\" + ScopeService +  "\\" + ScopeService + ".Repository";
+
+        if (!OnlyCreateEntity && !OnlyCreateFileNeedModify) {
+            CreateProject(folderRepository);
+            CreateFolderConfigs(folderRepository);
+        }
+        CreateFolderGenerated(folderRepository);
+        if (!OnlyCreateFileNeedModify) {
+            CreateInterfaces(folderRepository);
+            CreateFolderRepositorys(folderRepository);
+        }
+    }
+
+    public void CreateInterfaces(string outPut) {
+        string folderInterfaces = outPut + "\\Interfaces";
+        
+        if (!Directory.Exists(folderInterfaces))
+            Directory.CreateDirectory(folderInterfaces);
+        
+        CreateOverrideInterfaces(folderInterfaces);
+    }
+
+    public void CreateOverrideInterfaces(string outPut) {
+        string folderOverrideInterfaces = outPut;
+        
+        if (!Directory.Exists(folderOverrideInterfaces))
+            Directory.CreateDirectory(folderOverrideInterfaces);
+        
+        RenderOverrideInterface(folderOverrideInterfaces);
+    }
+
+    private void RenderOverrideInterface(string outPut)
+    {
+        var entityTemplate = this.Create<InterfacesOverride>();
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var fileName = String.Format("{0}\\{1}.cs", outPut, "I" +  CommonService.SingularizeString(entity.Name, UsingSingularizeString) + "Repos");
+            
+            if (File.Exists(fileName) && ReposPartial) {
+                File.Delete(fileName);
+            }
+            
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTemplate);
+                entityTemplate.SourceTable = entity;
+                entityTemplate.ScopeService = ScopeService;
+                entityTemplate.RenderToFile(fileName, true);
+    		}
+         }
+    }
+
+    private void CreateProject(string outPut) {
+        var entityTemplate = this.Create<Project>();
+        var fileName = String.Format("{0}\\{1}.csproj", outPut, ScopeService + ".Repository");
+        
+        if (File.Exists(fileName) && Csproj) {
+                File.Delete(fileName);
+        }  
+        
+        if (!File.Exists(fileName))
+		{
+            this.CopyPropertiesTo(entityTemplate);
+            entityTemplate.ScopeService = ScopeService;
+            entityTemplate.DotNetCoreVersion = DotNetCoreVersion;
+            Response.WriteLine(fileName);
+            entityTemplate.RenderToFile(fileName, true);
+		}
+    }
+
+    public void CreateFolderGenerated(string outPut) {
+        string folderReposGenerated = outPut + "\\Generated";
+        
+        if (File.Exists(folderReposGenerated))
+            File.Delete(folderReposGenerated);
+
+        Directory.CreateDirectory(folderReposGenerated);
+        Directory.Delete(folderReposGenerated, true);
+        CommonService.DeleteFiles(folderReposGenerated);
+        if (!OnlyCreateEntity) {
+            CreateFolderGeneratedConfigs(folderReposGenerated);
+        }
+        if (!OnlyCreateFileNeedModify) {
+            CreateEntityRepos(folderReposGenerated);
+            CreateFolderGeneratedInterfaces(folderReposGenerated);
+        }
+    }
+
+
+    private void RenderEntitiesRepos(string outPut)
+    {
+        var entityTemplate = this.Create<Repos>();
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var fileName = String.Format("{0}\\{1}.cs", outPut, CommonService.SingularizeString(entity.Name, UsingSingularizeString) + "Repos");
+            
+            if (File.Exists(fileName)) {
+                File.Delete(fileName);
+            }
+            
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTemplate);
+                entityTemplate.SourceTable = entity;
+                entityTemplate.ScopeService = ScopeService;
+                entityTemplate.RenderToFile(fileName, true);
+    		}
+         }
+    }
+
+    public void CreateEntityRepos(string outPut) {
+        string folderEntities = outPut;
+        
+        if (!Directory.Exists(folderEntities))
+            Directory.CreateDirectory(folderEntities);
+        
+        RenderEntitiesRepos(folderEntities);
+    }
+
+     public void CreateGeneratedInterfacesRepos(string outPut) {
+        string folderInterfaces = outPut;
+        
+        if (!Directory.Exists(folderInterfaces))
+            Directory.CreateDirectory(folderInterfaces);
+
+        RenderInterface(folderInterfaces);
+    }
+
+    private void RenderInterface(string outPut)
+    {
+        var entityTemplate = this.Create<Interface>();
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var fileName = String.Format("{0}\\{1}.cs", outPut, "I" + CommonService.SingularizeString(entity.Name, UsingSingularizeString) + "Repos");
+            
+            if (File.Exists(fileName)) {
+                File.Delete(fileName);
+            }
+            
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTemplate);
+                entityTemplate.SourceTable = entity;
+                entityTemplate.ScopeService = ScopeService;
+                entityTemplate.RenderToFile(fileName, true);
+    		}
+         }
+    }
+
+     public void CreateFolderGeneratedInterfaces(string outPut) {
+        string FolderReposOverrides = outPut + "\\Interfaces";
+        
+        if (!Directory.Exists(FolderReposOverrides))
+            Directory.CreateDirectory(FolderReposOverrides);
+        CreateGeneratedInterfacesRepos(FolderReposOverrides);
+      
+    }
+
+
+
+     public void CreateFolderGeneratedConfigs(string outPut) {
+        string FolderReposOverrides = outPut + "\\Configs";
+        
+        if (!Directory.Exists(FolderReposOverrides))
+            Directory.CreateDirectory(FolderReposOverrides);
+        CreateGeneratedDepedencyInjectionRepos(FolderReposOverrides);
+      
+    }
+
+    private void CreateGeneratedDepedencyInjectionRepos(string outPut)
+    {
+        var entityTemplate = this.Create<DependencyInjectionRepos>();
+    
+        var fileName = String.Format("{0}\\{1}.cs", outPut, "DependencyInjectionRepos");
+
+        if (File.Exists(fileName))
+		{
+            File.Delete(fileName);
+		}
+        if (!File.Exists(fileName))
+		{
+            this.CopyPropertiesTo(entityTemplate);
+            entityTemplate.ScopeService = ScopeService;
+
+            Response.WriteLine(fileName);
+            entityTemplate.RenderToFile(fileName, true);
+		}
+    }
+        
+    public void CreateOverride(string locationParent) {
+        var folderOverride = locationParent + "\\Overrides";
+        
+         if (!Directory.Exists(folderOverride))
+            Directory.CreateDirectory(folderOverride);
+    }
+    
+    #region Create Configs
+    public void CreateFolderConfigs(string outPut) {
+        string folderConfigs = outPut + "\\Configs";
+        
+        if (!Directory.Exists(folderConfigs))
+            Directory.CreateDirectory(folderConfigs);
+        
+        RenderConfigs(folderConfigs);
+    }
+    
+    private void RenderConfigs(string outPut)
+    {
+        var entityTemplate = this.Create<DIAdditionalRepos>();
+    
+        var fileName = String.Format("{0}\\{1}.cs", outPut, "DIAdditionalRepos");
+        if (!File.Exists(fileName))
+		{
+            this.CopyPropertiesTo(entityTemplate);
+            entityTemplate.ScopeService = ScopeService;
+            entityTemplate.RenderToFile(fileName, true);
+		}
+    }
+    #endregion
+    
+
+    public void CreateFolderRepositorys(string outPut) {
+        RenderOverrideRepos(outPut);
+    }
+
+    private void RenderOverrideRepos(string outPut)
+    {
+        var entityTemplate = this.Create<OverrideRepos>();
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var fileName = String.Format("{0}\\{1}.cs", outPut, CommonService.SingularizeString(entity.Name, UsingSingularizeString) + "Repos");
+            
+            if (File.Exists(fileName)&&ReposPartial) {
+                File.Delete(fileName);
+            }
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTemplate);
+                entityTemplate.SourceTable = entity;
+                entityTemplate.ScopeService = ScopeService;
+                Response.WriteLine(fileName);
+                entityTemplate.RenderToFile(fileName, true);
+    		}
+        }
+    }
+    
+    private void RenderRepositorys(string outPut)
+    {
+        var entityTemplate = this.Create<Repository>();
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var fileName = String.Format("{0}\\{1}.cs", outPut, entity.Name + "Repos");
+            
+            if (File.Exists(fileName)) {
+                File.Delete(fileName);
+            }
+            
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTemplate);
+                entityTemplate.SourceTable = entity;
+                entityTemplate.ScopeService = ScopeService;
+                Response.WriteLine(fileName);
+                entityTemplate.RenderToFile(fileName, true);
+    		}
+         }
+    }
+    private void RenderOverrideRepositorys(string outPut)
+    {
+        var entityTemplate = this.Create<OverrideRepository>();
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var fileName = String.Format("{0}\\{1}.cs", outPut + "\\Overrides", entity.Name + "ReposPartial");
+            
+            if (File.Exists(fileName) && ReposPartial) {
+                File.Delete(fileName);
+            }  
+            
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTemplate);
+                entityTemplate.SourceTable = entity;
+                entityTemplate.ScopeService = ScopeService;
+                Response.WriteLine(fileName);
+                entityTemplate.RenderToFile(fileName, true);
+    		}
+         }
+    }
+    
+    private void RenderIRepository(string outPut)
+    {
+         var entityTemplate = this.Create<IRepository>();
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var fileName = String.Format("{0}\\{1}.cs", outPut + "\\Interfaces", "I" + entity.Name + "Repos");
+            
+            if (File.Exists(fileName)) {
+                File.Delete(fileName);
+            }
+            
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTemplate);
+                entityTemplate.SourceTable = entity;
+                entityTemplate.ScopeService = ScopeService;
+                Response.WriteLine(fileName);
+                entityTemplate.RenderToFile(fileName, true);
+    		}
+         }
+    }
+
+</script>

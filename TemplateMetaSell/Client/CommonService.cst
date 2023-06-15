@@ -1,0 +1,310 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="true" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\Common" %>
+<%@ Assembly Name="System.Data" Path="..\Common" %>
+<%@ Assembly Name="System.Data.Entity.Design" Path="..\Common" %>
+<%@ Assembly Name="System.Data.Entity" Path="..\Common" %>
+<%@ Assembly Name="Newtonsoft.Json" Path="..\Common" %>
+
+<%@ Assembly Name="Xml.Schema.Linq" Path="..\Common" %>
+
+<%@ Assembly Name="System.Data" Path="..\Common" %>
+<%@ Assembly Name="System.Data.Entity.Design" Path="..\Common" %>
+<%@ Assembly Name="System.Data.Entity" Path="..\Common" %>
+<%@ Import Namespace="System.Globalization" %>
+<%@ Import Namespace="System.Linq" %>
+<%@ Import Namespace="System.Data.Entity.Design.PluralizationServices" %>
+<%@ Import Namespace="Newtonsoft.Json" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+
+
+<script runat="template">
+    public static string SingularizeString(string s, Boolean usingSingularize){
+        if(usingSingularize) {
+            var culture = new CultureInfo("en-US");
+            var p = PluralizationService.CreateService(culture);
+            var output = p.Singularize(s);
+            return output;
+        } else {
+            return s;
+        }
+    }
+
+    public static string GenerateAuthor(string coreVersion, string author) {
+        return "/// Code Generated Version "+ coreVersion  +
+                "\n/// Warning: Do not edit on this file" +
+                "\n/// Author: " + author +
+                "\n///"
+                    ;
+    }
+
+ public static string GenPTableName3(TableSchemaCollection tables, string foreignKey, bool UsingOldTemplate,
+     SchemaExplorer.TableKeySchemaCollection foreignKeys, 
+     SchemaExplorer.ColumnSchemaCollection foreignKeyColumns,
+     ColumnSchema column, bool returnColumnNameOnly = false) {
+        if(UsingOldTemplate == false) {
+            TableSchema tablePrimary = GetTablePrimary(foreignKey, tables);
+            return GenerateNameTable(tablePrimary.Name);
+        }
+        else {
+           var columnNameWithoutId = column.Name.Substring(2);
+           var mainTable = column.Table.ToString().Split('.')[1];
+           var mainFk = ReplaceFirst(foreignKey,"FK_", "");
+           mainFk = ReplaceFirst(mainFk, mainTable + "_", "");
+           mainFk = ReplaceFirst(mainFk, "fk_", "");
+           mainFk = ReplaceFirst(mainFk, "_", "");
+           mainFk = ReplaceFirst(mainFk, "_1", "");
+
+            if (mainFk.EndsWith("1")) {
+                mainFk = mainFk.Substring(0, mainFk.Length - 1);
+            }
+
+            if (mainFk.StartsWith("_")) {
+                mainFk = mainFk.Substring(1);
+            }
+
+            if (!mainFk.StartsWith("tbl_")) {
+                mainFk = ReplaceFirst(mainFk, "tbl", "tbl_");
+            }
+
+            if (returnColumnNameOnly) {
+                return column.Name + "Navigation";
+            } else {
+                return mainFk + " " + column.Name + "Navigation";
+            }
+        }
+     }
+
+    public static string ReplaceFirst(string text, string search, string replace)
+    {
+        int pos = text.IndexOf(search);
+        if (pos < 0)
+        {
+            return text;
+        }
+        return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
+    }    
+
+    private static Dictionary<string, string> _dict;
+    private static Dictionary<string, string> GetFixedMappings(string dictStr) {
+        if (_dict == null) {
+            _dict = new Dictionary<string, string>();
+            // _dict.Add("IdHocPhanRangBuoc","tbl_HocPhan");
+            // _dict.Add("IdChuongTrinhDaoTaoChiTiet", "tbl_ChuongTrinhDaoTao_HocPhan");
+            if (!string.IsNullOrEmpty(dictStr)) {
+                var temp = dictStr.Split(',');
+                for (var i = 0 ; i < temp.Length;i+=2) {
+                     _dict.Add(temp[i], temp[i+1]);
+                }
+            }
+
+            return _dict;
+        }
+
+        return _dict;
+    }
+
+    private static string GetTableByMapping(string dictStr, string fieldName) {
+        var dict = GetFixedMappings(dictStr);
+        
+        if (dict.ContainsKey(fieldName)) {
+            return dict[fieldName];
+        }
+
+        return string.Empty;
+    }
+
+    public static string GenPTableName2(TableSchemaCollection tables, string foreignKey, bool UsingOldTemplate,
+     SchemaExplorer.TableKeySchemaCollection foreignKeys, 
+     SchemaExplorer.ColumnSchemaCollection foreignKeyColumns,
+     ColumnSchema column, string dictStr, bool returnColumnNameOnly = false) {
+         if(UsingOldTemplate == false) {
+            TableSchema tablePrimary = GetTablePrimary(foreignKey, tables);
+            return GenerateNameTable(tablePrimary.Name);
+        }
+        else {
+            var tableMapping = GetTableByMapping(dictStr, column.Name);
+            if (!string.IsNullOrEmpty(tableMapping)) {
+                if (returnColumnNameOnly) {
+                    return column.Name + "Navigation";
+                } else {
+                 return tableMapping + " " + column.Name + "Navigation";
+                }
+            } else {
+                var columnNameWithoutId = column.Name.Substring(2);
+                var tempFK = foreignKeys.Where(
+                    x=> x.ToString().EndsWith(columnNameWithoutId) 
+                || x.ToString().EndsWith(columnNameWithoutId + "_1")
+                || x.ToString().EndsWith(columnNameWithoutId + "1")
+                ).ToList();
+
+                string mainFk = null;
+                if (tempFK.Count > 1) {
+                    var tempFkFirst = tempFK.FirstOrDefault(x=> x.ToString().EndsWith("tbl_" + columnNameWithoutId));
+                    if (tempFkFirst != null) {
+                        mainFk = tempFkFirst.ToString();
+                    }
+                } else if (tempFK.Count == 1) {
+                    mainFk = tempFK.First().ToString();
+                }
+
+                if (mainFk != null) {
+                    var mainTable = column.Table.ToString().Split('.')[1];
+                    var objName = mainFk.ToString().Replace("FK_", "");
+                    objName = ReplaceFirst(objName, mainTable + "_", "");
+                    objName = ReplaceFirst(objName, "_1", "");
+                    objName = ReplaceFirst(objName, "fk", "");                
+
+                    if (objName.EndsWith("1")) {
+                        objName = objName.Substring(0, objName.Length - 1);
+                    }
+
+                    if (objName.StartsWith("_")) {
+                        objName = objName.Substring(1);
+                    }
+
+                    if (!objName.StartsWith("tbl_")) {
+                        objName = ReplaceFirst(objName, "tbl", "tbl_");
+                    }
+
+                    if (returnColumnNameOnly) {
+                        return column.Name + "Navigation";
+                    } else {
+                        return objName + " " + column.Name + "Navigation";
+                    }
+                } else {
+                    return GenPTableName3(tables, foreignKey, UsingOldTemplate, foreignKeys, foreignKeyColumns, column, returnColumnNameOnly);
+                }
+            }
+
+            return "";
+        }
+    }
+
+    public static string GenCTableName(TableSchemaCollection tables, string primaryKey, bool UsingOldTemplate) {
+        TableSchema tableForegin = GetTableForeign(primaryKey, tables);
+        if(UsingOldTemplate == false) {
+            return GenerateNameTable(tableForegin.Name) + "s";
+        }
+        else {
+            return GenerateNameTable(tableForegin.Name);
+        }
+    }
+
+    // public static string GenCTableName2(
+    //     TableSchemaCollection tables, string foreignKey, bool UsingOldTemplate,
+    //  SchemaExplorer.TableKeySchemaCollection foreignKeys, 
+    //  SchemaExplorer.ColumnSchemaCollection foreignKeyColumns,
+    //  ColumnSchema column, bool returnColumnNameOnly = false
+    // ) {
+    //     TableSchema tableForegin = GetTableForeign(primaryKey, tables);
+    //     if(UsingOldTemplate == false) {
+    //         return GenerateNameTable(tableForegin.Name) + "s";
+    //     }
+    //     else {
+    //         return GenerateNameTable(tableForegin.Name);
+    //     }
+    // }
+
+    public static string GenerateNameTable(string pureName) {
+        return SingularizeString(pureName, true);
+    }
+    public static string GetJson(object data){
+        return JsonConvert.SerializeObject(data);
+    }
+    public static string GetForeignKey(string longKey) {
+        string[] result = longKey.Split('.');
+        return result[result.Length - 1];
+    }
+    public static TableSchema GetTablePrimary(string foreignKey, TableSchemaCollection tables) {
+        foreach(TableSchema tbl in tables) {
+            foreach(var primaryKey in tbl.PrimaryKeys) {
+                if(primaryKey.Name == foreignKey)
+                    return tbl;
+            }
+        }
+        return null;
+    }
+    public static TableSchema GetTableForeign(string primaryKey, TableSchemaCollection tables) {
+        foreach(TableSchema tbl in tables) {
+            foreach(var foreginKey in tbl.ForeignKeys) {
+                if(foreginKey.Name == primaryKey)
+                    return tbl;
+            }
+        }
+        return null;
+    }
+    public static string GetLogAllProperty(object data)
+    {
+        string result = "";
+        foreach(var prop in data.GetType().GetProperties())
+        {
+            result += "// " + GetJson(prop) + Environment.NewLine;
+        }
+        return result;
+    }
+    public static string GetLogAllValue(object data)
+    {
+        string result = "";
+        foreach (var prop in data.GetType().GetProperties())
+        {
+            try{
+            result += "//" + prop.Name + ": " + prop.GetValue(data) + Environment.NewLine;
+            }
+            catch {}
+        }
+        return result;
+    }
+
+    public static string GetNameFile(string Name, bool IsVietNameseTableSetting){
+        var result="";
+        if (IsVietNameseTableSetting == false) {
+            for(int i = 0; i < Name.Length; i++) {
+                if(i > 0 && Char.IsUpper(Name[i])) {
+                    result += "-" + Name[i].ToString().ToLower();
+                }
+                else {
+                    result += Name[i].ToString().ToLower();
+                }
+            }
+            return result;
+        }
+        else {
+            Name = Name.Replace("_", "-");
+            Name = Name.ToLower();
+            return Name;
+        }
+    }
+    public static string GetModuleName(string Name) {
+        var result = "";
+        for (int i = 0; i < Name.Length; i++) {
+            if (i > 0 && Name[i].ToString() == "-") {
+                result += Name[i + 1].ToString().ToUpper();
+                i++;
+            }
+            else
+            {
+                result += Name[i].ToString();
+            }
+        }
+        result = result.Replace("-", "");
+        return (char.ToUpper(result[0]) + result.Substring(1));
+    }
+    public static string Tab(int tab, bool haveNewRow = true) {
+        string result = "";
+        if (haveNewRow)
+            result = "\n";
+        for(int i = 0; i < tab; i++)
+            result += "\t";
+        return result;
+    }
+    public static string GetDescription(string description) {
+        if (description.Trim() == "")
+            return "";
+        return description.Split(new [] { "__" }, StringSplitOptions.RemoveEmptyEntries)[0];
+    }
+</script>

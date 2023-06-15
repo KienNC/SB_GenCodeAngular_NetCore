@@ -1,0 +1,52 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+
+<%@ Property Optional="False" Name="ScopeService" Type="System.String" Category="2.Common" Description="Tên dịch vụ" %>
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+
+namespace <%=ScopeService %>.DataContext.Generated.Configs
+{
+    public static class DepedencyInjectionDatacontextExtension
+    {
+        public static void DepedencyInjectionDatacontext(this IServiceCollection services, string connectionString)
+        {
+            services.AddDbContext<<%=ScopeService %>DataContext>(options =>
+                {
+                    options.EnableSensitiveDataLogging();
+                    // options.UseSqlServer(connectionString);
+                    options.UseSqlServer(connectionString,
+                        sqlServerOptionsAction: sqlOption =>
+                        {
+                            sqlOption.EnableRetryOnFailure(
+                                maxRetryCount: 3,
+                                maxRetryDelay: TimeSpan.FromSeconds(3),
+                                errorNumbersToAdd: null
+                            );
+                        });
+                });
+                
+            services.AddScoped<IUserPrincipalService, UserPrincipalService>();
+
+            services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new MappingProfile());
+            });
+            AutoMapperConfiguration.Init(config);   
+                
+        }
+    }
+}

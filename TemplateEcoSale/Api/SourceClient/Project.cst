@@ -1,0 +1,32 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+<%@ Assembly Name="Xml.Schema.Linq" Path="..\..\Common" %>
+
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Name="ScopeService" Type="System.String" %>
+<%@ Property Name="CoreVersion" Type="System.String" %>
+<%@ Property Name="DotNetCoreVersion" Type="System.String"  %>
+
+  <Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+	</ItemGroup>
+    
+    <ItemGroup>
+	  <ProjectReference Include="..\..\Models.Core\Models.Core.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,124 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+
+<%@ Import Namespace="CodeSmith.SchemaHelper" %>
+<%@ Import Namespace="Generator.QuickStart" %>
+<%@ Import Namespace="Generator.Microsoft.Frameworks" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Name="SourceTable" Type="TableSchema" %>
+<%@ Property Category="Config" Name="Config" Type="ConfigGenerate" Description="Cấu hình chung của genecode" %>
+ <%@ Register Name="CommonService" Template="..\CommonService.cst" %>
+<%@ Property Name="IsVietNameseTableSetting"  Type="System.Boolean" Default="false" Description="Sử dụng tên bảng kiểu VietNam (Ngăn cách nhau bởi dấu _ ) "%>
+
+<nz-card>
+  <div class="row">
+    <div class="col-lg-6 col-md-3 col-sm-12 col-xs-12  m-b-15">
+      <h4 class="font-weight-normal">Quản lý <%=SourceTable.Name%></h4>
+    </div>
+    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12  m-b-15">
+      <nz-input-group [nzPrefix]="prefixTemplate">
+        <input type="text" nz-input placeholder="Tên ..." [(ngModel)]="searchModel.keyWord">
+      </nz-input-group>
+      <ng-template #prefixTemplate>
+        <i nz-icon nzType="search" class="opacity-05"></i>
+      </ng-template>
+    </div>
+    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 text-right  m-b-15">
+      <button nz-button nzType="primary" class="m-r-5" [nzLoading]="isLoading" (click)="search()">
+        <i nz-icon nzType="search" theme="outline"></i>
+        Tìm kiếm</button>
+      <button nz-button nzType="primary" class="collapse" (click)="toggleCollapse()">
+        <span nz-icon [nzType]="isCollapse ? 'up' : 'down'" nzTheme="outline"></span>
+      </button>
+    </div>
+  </div>
+  <div class="m-b-15" style="display: flex;justify-content: space-between;">
+    <div class="group-left">
+      <button nz-button nzSize="small" (click)="onAddNew()" nz-dropdown nzType="primary">
+        <i nz-icon nzType="plus-circle" theme="outline"></i>
+        <span>Thêm mới</span>
+      </button>
+    </div>
+    <div class="group-right text-right">
+      <button class="m-l-5" nzSize="small" nz-button nzType="primary" nz-dropdown [nzClickHide]="false"
+        nzTrigger="click" [nzDropdownMenu]="menu">
+        <i nz-icon nzType="setting" theme="outline"></i>
+      </button>
+
+      <nz-dropdown-menu #menu="nzDropdownMenu">
+        <ul nz-menu>
+          <li nz-menu-item (click)="exportExcel()"> <i nz-icon nzType="export" theme="outline" class="m-r-5"></i> <span>
+              Export To Excel</span> </li>
+          <ng-container *ngFor="let col of gridColums">
+            <li nz-menu-item><label nz-checkbox [(ngModel)]="col.visible">{{col.header}}</label> </li>
+          </ng-container>
+        </ul>
+      </nz-dropdown-menu>
+    </div>
+  </div>
+  <nz-table #productsListTable [nzData]="gridData">
+      <thead>
+          <tr>
+              <th width="35px" class="text-center">STT</th>
+              <ng-container *ngFor="let col of gridColums">
+                <th *ngIf="col.visible" [nzWidth]="col.thWidth" [ngClass]="col.class">
+                  {{col.header}}
+                </th>
+              </ng-container>
+              <th width="80px" class="text-center">Thao tác</th>
+          </tr>
+      </thead>
+      <tbody>
+          <tr *ngFor="let data of productsListTable.data;  let i=index">
+              <td class="text-center">{{getRowIndex(i)}}</td>
+              <ng-container *ngFor="let col of gridColums">
+                  <td *ngIf="col.visible" [ngClass]="col.class">
+                    <ng-container [ngSwitch]="col.dataType">
+                      <span *ngSwitchCase="'date'">
+                        {{data[col.field]| date:'HH:mm dd/MM/yyyy'}} <br>
+                      </span>
+                      <ng-container *ngSwitchDefault>
+                        <span>
+                          {{data[col.field]}}
+                        </span>
+                      </ng-container>
+                    </ng-container>
+                </td>
+              </ng-container>
+              <td class="text-md-right">
+                <button class="m-r-5" nz-button nzType="primary" nzShape="circle" nz-tooltip nzTooltipTitle="Sửa"
+                  (click)="onEdit(data.id)">
+                  <i nz-icon nzType="edit" theme="outline"></i>
+                </button>
+                <button nz-button nzType="default" nzDanger nzShape="circle" nz-tooltip nzTooltipTitle="Xóa"
+                  (click)="onDelete(data.id)">
+                  <i nz-icon nzType="delete" theme="outline"></i>
+                </button>
+              </td>
+          </tr>
+      </tbody>
+  </nz-table>
+  <div class="text-right m-t-20">
+    <nz-pagination class="pagination-card" [nzPageIndex]="page" [nzTotal]="totalRecord" nzShowSizeChanger [nzPageSizeOptions]="pageSizeOption"
+      [nzPageSize]="pageSize" [nzShowTotal]="rangeTemplate" (nzPageIndexChange)="changePageIndex($event)"
+      (nzPageSizeChange)="changePageSize($event)">
+      <ng-template #rangeTemplate let-range="range" let-total>
+        {{ range[0] }}-{{ range[1] }} of {{ total }} items
+      </ng-template>
+    </nz-pagination>
+  </div>
+
+</nz-card>
+<ng-template #isUse let-model="model">
+  <ng-container *ngIf="model">
+    <i nz-icon nzType="check-square" class="text-success" nzTheme="twotone"></i>
+  </ng-container>
+</ng-template>
+
+<script runat="template">
+</script>

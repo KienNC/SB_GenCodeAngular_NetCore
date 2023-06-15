@@ -1,0 +1,75 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+<%@ Assembly Name="Xml.Schema.Linq" Path="..\..\Common" %>
+
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="SchemaExplorer"%>
+<%@ Import Namespace="System.Text" %>
+
+<%@ Property Category="Table" Name="SourceDatabase" Type="DatabaseSchema" Description="Đường dẫn connection string" %>
+<%@ Property Category="Table" Name="SourceTables" Type="TableSchemaCollection" Description="Danh sách các bảng muốn gen code" %>
+
+<%@ Property Name="TableName" Type="System.String" Category="Table" Description="Điền thông tin bảng muốn lấy" %>
+
+<%--<%@ Property Name="popupWidth" Type="System.Int32" Category="popup"  Description=""%>
+<%@ Property Name="popupHeight" Type="System.Int32" Category="popup" Description=""%>--%>
+<%@ Property Name="IsVietNameseTableSetting" Type="System.Boolean" Default="false" Description="Sử dụng tên bảng kiểu VietNam (Ngăn cách nhau bởi dấu _ ) "%>
+<%@ Register Name="CommonService" Template="..\CommonService.cst" %>
+
+<%@ Property Category="Config" Name="Config" Type="ConfigGenerate" Description="Cấu hình chung của genecode" %>
+
+<%@ Property Name="Location" Type="System.String"
+    Default="" Optional="False" Category="Output"
+    Description="This is the path to the Solution location."
+    Editor="System.Windows.Forms.Design.FolderNameEditor, System.Design, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" %>
+
+<%@ Register Name="ComponentHtml" Template="form.component.html.cst" %>
+<%@ Register Name="ComponentTs" Template="form.component.ts.cst" %>
+
+<% CreateFolderForm();%>
+<script runat="template">
+    public void CreateFolderForm() {    
+        for (int i = 0; i < SourceTables.Count; i++) {
+            var entity = SourceTables[i];
+            var outPut = Location + "\\" + CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting) + "\\" 
+                        + CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting) +"-edit";
+            if(!Directory.Exists(outPut))
+                Directory.CreateDirectory(outPut);
+             
+            var entityTs = this.Create<ComponentTs>();
+            var fileName = String.Format("{0}\\{1}-edit.component.ts", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+            if (!File.Exists(fileName))
+    		{
+                this.CopyPropertiesTo(entityTs);
+                entityTs.EntityNamespace = "";
+                entityTs.SourceTable = entity;
+//                entityTs.popupWidth = popupWidth;
+//                entityTs.popupHeight = popupHeight; 
+                Response.WriteLine(fileName);
+                entityTs.RenderToFile(fileName, true);
+    		}
+        
+            var entityHtml = this.Create<ComponentHtml>();
+            var fileHtml = String.Format("{0}\\{1}-edit.component.html", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+            if (!File.Exists(fileHtml))
+    		{
+                this.CopyPropertiesTo(entityHtml);
+                entityHtml.SourceTable = entity;
+                entityHtml.EntityNamespace = "";
+                Response.WriteLine(fileHtml);
+                entityHtml.RenderToFile(fileHtml, true);
+    		}
+   
+            var fileScss = String.Format("{0}\\{1}-edit.component.scss", outPut, CommonService.GetNameFile(entity.Name, IsVietNameseTableSetting));
+            if (!File.Exists(fileScss))
+    		{
+                File.Create(fileScss);
+    		}
+        }
+    }
+</script>

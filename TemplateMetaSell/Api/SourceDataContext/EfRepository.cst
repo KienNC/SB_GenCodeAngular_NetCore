@@ -1,0 +1,328 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="False" Inherits="EntityCodeTemplate" CompilerVersion="v3.5" Encoding="UTF-8" Description="EF Entity" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Assembly Name="CodeSmith.SchemaHelper" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.QuickStart" Path="..\..\Common" %>
+<%@ Assembly Name="Generator.Microsoft.Frameworks" Path="..\..\Common" %>
+<%@ Assembly Name="Xml.Schema.Linq" Path="..\..\Common" %>
+
+<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Property Name="ScopeService" Type="System.String" %>
+<%@ Property Name="CoreVersion" Type="System.String" %>
+<%@ Property Name="DotNetCoreVersion" Type="System.String"  %>
+
+using SB.Core;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
+namespace <%=ScopeService %>.DataContext
+{
+    public partial class EfRepository<T> : IRepository<T> where T : BaseEntity
+    {
+        #region Fields
+        private readonly IUserPrincipalService _userPrincipalService;
+        private readonly <%=ScopeService %>DataContext _context;
+        private DbSet<T> _entities;
+        protected virtual DbSet<T> Entities
+        {
+            get
+            {
+                if (_entities == null)
+                    _entities = _context.Set<T>();
+                return _entities;
+            }
+        }
+        #endregion
+
+        #region Ctor
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="context">Object context</param>
+        public EfRepository(<%=ScopeService %>DataContext context, IUserPrincipalService userPrincipalService)
+        {
+            this._context = context;
+            _userPrincipalService = userPrincipalService;
+        }
+
+        public virtual IQueryable<T> Table
+        {
+            get
+            {
+                return this.Entities;
+            }
+        }
+
+        public virtual IQueryable<T> TableNoTracking
+        {
+            get
+            {
+                return this.Entities.AsNoTracking();
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        public virtual async Task DeleteAsync(IEnumerable<T> entities, bool removeInDatabase = false)
+        {
+            try
+            {
+                if (entities == null)
+                    throw new ArgumentNullException("entities");
+                var user = _userPrincipalService.GetUserLogin();
+                if (removeInDatabase)
+                {
+                    foreach (var entity in entities)
+                    {
+                        var local = _context.Set<T>().Local.FirstOrDefault(entry => entry.Id == entity.Id);
+                        // check if local is not null 
+                        if (local != null)
+                        {
+                            // detach
+                            _context.Entry(local).State = EntityState.Detached;
+                        }
+                        _context.Entry(entity).State = EntityState.Deleted;
+                    }
+                    await this._context.SaveChangesAsync();
+                    return;
+                }
+                foreach (var entity in entities)
+                {
+                    entity.NgayXoa = DateTime.Now;
+                    if (user != null)
+                    {
+                        entity.NguoiXoaUserId = user.Id;
+                        entity.NguoiXoaUserName = user.UserName;
+                    }
+                    entity.IsDelete = true;
+                    var local = _context.Set<T>().Local.FirstOrDefault(entry => entry.Id == entity.Id);
+
+                    // check if local is not null 
+                    if (local != null)
+                    {
+                        // detach
+                        _context.Entry(local).State = EntityState.Detached;
+                    }
+                    _context.Entry(entity).State = EntityState.Modified;
+                    EntityEntry entry = _context.Entry<T>(entity);
+
+                    if (entry.State == EntityState.Detached)
+                    {
+                        _context.Set<T>().Attach(entity);
+                        // TODO other properties
+
+                        //thêm thời gian cập nhật
+                        entry.Property("IsDeleted").IsModified = true;
+                        entry.Property("NguoiXoaUserId").IsModified = true;
+                        entry.Property("NguoiXoaUserName").IsModified = true;
+                        entry.Property("NgayXoa").IsModified = true;
+
+                    }
+                }
+
+                await this._context.SaveChangesAsync();
+            }
+            catch (Exception dbEx)
+            {
+                throw new ArgumentException(dbEx.Message);
+            }
+        }
+
+        public virtual async Task DeleteAsync(T entity, bool removeInDatabase = false)
+        {
+            switch (entity)
+            {
+                case null:
+                    throw new ArgumentNullException(nameof(entity));
+
+                case BaseEntity softDeletedEntity:
+
+                    if (removeInDatabase)
+                    {
+                        var local = _context.Set<T>().Local.FirstOrDefault(entry => entry.Id == entity.Id);
+                        // check if local is not null 
+                        if (local != null)
+                        {
+                            // detach
+                            _context.Entry(local).State = EntityState.Detached;
+                        }
+                        _context.Entry(entity).State = EntityState.Deleted;
+                        await _context.SaveChangesAsync();
+                        return;
+                    }
+
+                    softDeletedEntity.IsDelete = true;
+                    _context.Update<T>(entity);
+                    await _context.SaveChangesAsync();
+                    break;
+            }
+        }
+
+        public async Task<T> GetByIdAsync(object id)
+        {
+            return await this.Entities.AsNoTracking().FirstOrDefaultAsync(b => b.Id == (Guid)id);
+        }
+
+        public async Task InsertAsync(T entity)
+        {
+            try
+            {
+                if (entity == null)
+                    throw new ArgumentNullException("entity");
+                if (GuidHelper.IsNullOrEmpty(entity.Id))
+                {
+                    entity.Id = Guid.NewGuid();
+                }
+                entity.NgayTao = DateTime.Now;
+                var user = _userPrincipalService.GetUserLogin();
+                if (user != null)
+                {
+                    entity.NguoiTaoUserId = user.Id;
+                    entity.NguoiTaoUserName = user.UserName;
+                }
+                await this.Entities.AddAsync(entity);
+
+                await this._context.SaveChangesAsync();
+            }
+            catch (Exception dbEx)
+            {
+                throw new ArgumentException(dbEx.Message);
+            }
+        }
+
+        public async Task InsertAsync(IEnumerable<T> entities)
+        {
+            try
+            {
+                if (entities == null)
+                    throw new ArgumentNullException("entities");
+                var user = _userPrincipalService.GetUserLogin();
+                foreach (var entity in entities)
+                {
+                    if (user != null)
+                    {
+                        entity.NguoiTaoUserId = user.Id;
+                        entity.NguoiTaoUserName = user.UserName;
+                       
+                    }
+                    entity.NgayTao = DateTime.Now;
+                    await this.Entities.AddAsync(entity);
+                }
+
+
+                await this._context.SaveChangesAsync();
+            }
+            catch (Exception dbEx)
+            {
+                throw new ArgumentException(dbEx.Message);
+            }
+        }
+
+        public async Task UpdateAsync(T entity)
+        {
+            try
+            {
+                if (entity == null)
+                    throw new ArgumentNullException("entity");
+
+                entity.NgayCapNhat = DateTime.Now;
+                var user = _userPrincipalService.GetUserLogin();
+                if (user != null)
+                {
+                    entity.NguoiCapNhatUserId = user.Id;
+                    entity.NguoiCapNhatUserName = user.UserName;
+                }
+                var local = _context.Set<T>().Local.FirstOrDefault(entry => entry.Id == entity.Id);
+
+                // check if local is not null 
+                if (local != null)
+                {
+                    // detach
+                    _context.Entry(local).State = EntityState.Detached;
+                }
+                EntityEntry entry = _context.Entry<T>(entity);
+                if (entry.State == EntityState.Detached)
+                {
+                    _context.Set<T>().Attach(entity);
+                    // TODO other properties
+                    foreach (var propperty in entity.GetDirtyProperties())
+                    {
+                        entry.Property(propperty).IsModified = true;
+                    }
+
+                    //thêm thời gian cập nhật
+                    entry.Property("NgayCapNhat").IsModified = true;
+                    entry.Property("NguoiCapNhatUserId").IsModified = true;
+                    entry.Property("NguoiCapNhatUserName").IsModified = true;
+                }
+
+                await this._context.SaveChangesAsync();
+            }
+            catch (Exception dbEx)
+            {
+                throw new ArgumentException(dbEx.Message);
+            }
+        }
+
+        public async Task UpdateAsync(IEnumerable<T> entities)
+        {
+            try
+            {
+                if (entities == null)
+                    throw new ArgumentNullException("entities");
+                var user = _userPrincipalService.GetUserLogin();
+
+                foreach (var entity in entities)
+                {
+                    entity.NgayCapNhat = DateTime.Now;
+                    if (user != null)
+                    {
+                        entity.NguoiCapNhatUserId = user.Id;
+                        entity.NguoiCapNhatUserName = user.UserName;
+                    }
+                    var local = _context.Set<T>().Local.FirstOrDefault(entry => entry.Id == entity.Id);
+
+                    // check if local is not null 
+                    if (local != null)
+                    {
+                        // detach
+                        _context.Entry(local).State = EntityState.Detached;
+                    }
+
+                    EntityEntry entry = _context.Entry<T>(entity);
+
+                    if (entry.State == EntityState.Detached)
+                    {
+                        _context.Set<T>().Attach(entity);
+                        // TODO other properties
+                        foreach (var propperty in entity.GetDirtyProperties())
+                        {
+                            entry.Property(propperty).IsModified = true;
+                        }
+
+                        //thêm thời gian cập nhật
+                        entry.Property("NgayCapNhat").IsModified = true;
+                        entry.Property("NguoiCapNhatUserId").IsModified = true;
+                        entry.Property("NguoiCapNhatUserName").IsModified = true;
+                    }
+                }
+                await this._context.SaveChangesAsync();
+            }
+            catch (Exception dbEx)
+            {
+                throw new ArgumentException(dbEx.Message);
+            }
+        }
+
+        #endregion
+
+
+    }
+}
+
